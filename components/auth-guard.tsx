@@ -3,10 +3,14 @@
 import { usePrivy } from '@privy-io/react-auth'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { useInactivityTimeout } from '@/hooks/useInactivityTimeout'
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { ready, authenticated } = usePrivy()
   const router = useRouter()
+
+  // Start inactivity timer only when authenticated
+  useInactivityTimeout()
 
   useEffect(() => {
     if (ready && !authenticated) router.push('/login')
@@ -24,3 +28,5 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>
 }
+
+
