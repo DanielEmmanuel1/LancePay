@@ -20,7 +20,9 @@ model User {
   bankAccounts BankAccount[]
   invoices     Invoice[]
   transactions Transaction[]
-  
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret  String? // Encrypted 2FA secret
+  backupCodes      String[] // Encrypted backup codes
   reminderSettings ReminderSettings?
 }
 
