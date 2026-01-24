@@ -26,6 +26,7 @@ model User {
   reminderSettings ReminderSettings?
   apiKeys          ApiKey[]
   autoSwapRule     AutoSwapRule?
+  webhooks         UserWebhook[]
 }
 
 model Wallet {
@@ -144,6 +145,8 @@ model ApiKey {
 
   @@index([userId])
   @@index([hashedKey])
+}
+
 model AutoSwapRule {
   id            String      @id @default(uuid())
   userId        String      @unique
@@ -218,4 +221,21 @@ model EscrowEvent {
   invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@index([invoiceId])
+}
+
+model UserWebhook {
+  id             String    @id @default(uuid())
+  userId         String
+  targetUrl      String    @db.VarChar(512)
+  signingSecret  String    @db.VarChar(255)
+  description     String?   @db.VarChar(100)
+  isActive       Boolean   @default(true)
+  subscribedEvents String[] @default(["invoice.paid"])
+  lastTriggeredAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
 }
