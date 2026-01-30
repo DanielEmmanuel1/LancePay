@@ -38,6 +38,7 @@ model User {
   userBadges       UserBadge[]
   auditEvents      AuditEvent[]
   savingsGoals     SavingsGoal[]
+  incomeVerifications IncomeVerification[]  
 }
 
 model Wallet {
@@ -348,6 +349,7 @@ model AuditEvent {
   @@index([invoiceId])
   @@index([eventType])
   @@index([createdAt])
+}
 model SavingsGoal {
   id                String   @id @default(uuid())
   userId            String
@@ -364,23 +366,6 @@ model SavingsGoal {
 
   @@index([userId])
   @@index([status])
-}
-
-model AuditEvent {
-  id        String   @id @default(uuid())
-  invoiceId String
-  eventType String   @db.VarChar(50)
-  actorId   String?
-  metadata  Json?
-  signature String
-  createdAt DateTime @default(now())
-
-  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  actor   User?   @relation(fields: [actorId], references: [id])
-
-  @@index([invoiceId])
-  @@index([eventType])
-  @@index([createdAt])
 }
 
 model ClientReputation {
