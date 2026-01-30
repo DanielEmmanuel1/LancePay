@@ -100,6 +100,7 @@ model Invoice {
   encryptedPayload   String?  @db.Text // AES-256-GCM encrypted JSON blob
   decryptionSalt     String?  // Salt used in key derivation (not the key itself)
   messages                InvoiceMessage[]
+  manualPayments          ManualPayment[]
 }
 
 model InvoiceMessage {
