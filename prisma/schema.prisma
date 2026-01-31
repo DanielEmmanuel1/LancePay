@@ -392,13 +392,11 @@ model BadgeDefinition {
   description      String?
   criteriaJson     Json
   imageUrl         String?  @db.VarChar(512)
-  stellarAssetCode String   @db.VarChar(12)
+  stellarAssetCode String   @unique @db.VarChar(12)
   isActive         Boolean  @default(true)
   createdAt        DateTime @default(now())
 
   userBadges UserBadge[]
-
-  @@index([stellarAssetCode])
 }
 
 model UserBadge {

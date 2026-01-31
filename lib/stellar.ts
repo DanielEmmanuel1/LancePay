@@ -16,10 +16,14 @@ export const server = new Horizon.Server(HORIZON_URL);
 
 /**
  * USDC Asset
+ * Fallback to testnet USDC issuer if not configured
  */
+const USDC_ISSUER = process.env.NEXT_PUBLIC_USDC_ISSUER || 
+  "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"; // Testnet USDC issuer
+
 export const USDC_ASSET = new Asset(
   process.env.NEXT_PUBLIC_USDC_CODE || "USDC",
-  process.env.NEXT_PUBLIC_USDC_ISSUER!,
+  USDC_ISSUER,
 );
 
 /**
