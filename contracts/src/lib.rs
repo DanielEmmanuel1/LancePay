@@ -8,6 +8,10 @@ pub mod gasless;
 pub mod upgrade_utils;
 pub mod dispute_resolution;
 pub mod trustline;
+pub mod rebalancer;
+pub mod multisig_governance;
+
+
 
 
 
