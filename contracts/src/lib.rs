@@ -5,6 +5,8 @@ pub mod auth;
 pub mod monitor;
 pub mod path_payment;
 pub mod gasless;
+pub mod upgrade_utils;
+
 
 
 
