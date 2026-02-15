@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     const computedRefund =
       action === 'refund_full' ? invAmount : action === 'refund_partial' ? refundAmount! : 0
 
-    const updated = await prisma.$transaction(async (tx) => {
+    const updated = await prisma.$transaction(async (tx: any) => {
       const now = new Date()
 
       const disputeUpdated = await tx.dispute.update({

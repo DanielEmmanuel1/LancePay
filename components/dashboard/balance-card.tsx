@@ -5,9 +5,13 @@ import { useState } from 'react'
 
 interface BalanceCardProps {
   balance: {
-    available: { display: string }
-    localEquivalent: { display: string; rate: number }
+    available?: { display: string }
+    localEquivalent?: { display: string; rate: number }
     xlm?: number
+    usdc?: string | number
+    usd?: string | number
+    totalValue?: number
+    assets?: any[]
   } | null
   isLoading: boolean
   xlmBalance?: number
@@ -41,27 +45,33 @@ export function BalanceCard({ balance, isLoading, xlmBalance }: BalanceCardProps
     }
     // Format 2: { usdc: string, usd: string }
     else if (balance.usdc || balance.usd) {
-      const amount = parseFloat(balance.usdc || balance.usd || "0");
+      const amount = parseFloat(String(balance.usdc || balance.usd || "0"));
       displayBalance = `$${amount.toFixed(2)}`;
       rate = 1600; // Default rate
       localEquivalent = `₦${(amount * rate).toLocaleString()}`;
+    }
+    // Format 3: { totalValue: number } (Portfolio structure)
+    else if (balance.totalValue !== undefined) {
+      displayBalance = `$${balance.totalValue.toFixed(2)}`;
+      rate = 1600; // Default rate
+      localEquivalent = `₦${(balance.totalValue * rate).toLocaleString()}`;
     }
   }
 
   const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: currency,
+    currency: 'USD',
   });
 
   return (
     <div className="bg-white rounded-2xl border border-brand-border p-6">
       <p className="text-sm text-brand-gray font-medium mb-1">Total Portfolio Value</p>
       <h2 className="text-4xl font-bold text-brand-black mb-2">
-        {formatter.format(totalValue)}
+        {displayBalance}
       </h2>
       <p className="text-sm text-brand-gray mb-3">
-        ≈ {balance?.localEquivalent.display || '₦0'}
-        <span className="text-xs ml-1">@ ₦{balance?.localEquivalent.rate?.toLocaleString() || '0'}/$1</span>
+        ≈ {localEquivalent}
+        <span className="text-xs ml-1">@ ₦{rate.toLocaleString()}/$1</span>
       </p>
 
       {/* XLM Reserve Display */}

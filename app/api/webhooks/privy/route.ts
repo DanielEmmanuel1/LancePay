@@ -210,7 +210,7 @@ async function handleUserCreated(event: PrivyEvent): Promise<void> {
   let user = null as null | { id: string; privyId: string; email: string }
 
   try {
-    user = await prisma.$transaction(async (tx) => {
+    user = await prisma.$transaction(async (tx: any) => {
       const existing = await tx.user.findUnique({ where: { privyId } })
       if (existing) return existing
 

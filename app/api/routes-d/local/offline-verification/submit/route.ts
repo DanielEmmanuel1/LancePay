@@ -104,9 +104,9 @@ export async function POST(request: NextRequest) {
     const manualPayment = await prisma.manualPayment.create({
       data: {
         invoiceId: invoice.id,
-        clientName,
         amountPaid: parseFloat(amountPaid),
         currency,
+        paymentMethod: 'bank_transfer',
         receiptUrl,
         notes: notes || null,
         status: 'pending',

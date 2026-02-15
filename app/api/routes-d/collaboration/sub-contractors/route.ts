@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate totals
     const totalAllocated = collaborators.reduce(
-      (sum, c) => sum + Number(c.sharePercentage),
+      (sum: number, c: any) => sum + Number(c.sharePercentage),
       0
     )
     const leadShare = 100 - totalAllocated
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
       invoiceId,
       leadSharePercentage: leadShare,
       totalAllocatedPercentage: totalAllocated,
-      collaborators: collaborators.map((c) => ({
+      collaborators: collaborators.map((c: any) => ({
         id: c.id,
         subContractorId: c.subContractorId,
         email: c.subContractor.email,

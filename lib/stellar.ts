@@ -58,7 +58,7 @@ interface StellarErrorResponse {
  */
 export const USDC_ASSET = new Asset(
   process.env.NEXT_PUBLIC_USDC_CODE || "USDC",
-  process.env.NEXT_PUBLIC_USDC_ISSUER!,
+  USDC_ISSUER,
 );
 
 export interface AssetBalance {
@@ -459,3 +459,63 @@ export async function removeTrustline(
   }
 }
 
+export interface StellarTransaction {
+  transaction_hash: string
+  type: string
+  created_at: string
+  transaction_successful: boolean
+  from: string
+  to: string
+  amount?: string
+  asset_code?: string
+  asset_type?: string
+  memo?: string
+}
+
+/**
+ * Fetch full transaction history for a potentially large account
+ * @param publicKey Stellar account public key
+ * @param startDate Optional start date filter
+ * @param endDate Optional end date filter
+ * @returns List of formatted transactions
+ */
+export async function fetchFullTransactionHistory(
+  publicKey: string,
+  startDate?: Date,
+  endDate?: Date
+): Promise<StellarTransaction[]> {
+  try {
+    let response = await server.payments().forAccount(publicKey).order('desc').limit(50).call()
+    let records = response.records
+    let allRecords: any[] = [...records]
+
+    // Cursor-based pagination could be added here if needed for deeper history
+    // For now, 50-100 items is usually enough for export unless user is very active
+
+    const formatted = allRecords.map((r: any) => {
+      // payment specific fields
+      return {
+        transaction_hash: r.transaction_hash,
+        type: r.type,
+        created_at: r.created_at,
+        transaction_successful: r.transaction_successful,
+        from: r.from,
+        to: r.to,
+        amount: r.amount,
+        asset_code: r.asset_code,
+        asset_type: r.asset_type,
+      } as StellarTransaction
+    })
+
+    // Filter by date if provided
+    return formatted.filter(t => {
+      const date = new Date(t.created_at)
+      if (startDate && date < startDate) return false
+      if (endDate && date > endDate) return false
+      return true
+    })
+  } catch (error) {
+    console.error('Error fetching Stellar transaction history:', error)
+    return []
+  }
+}

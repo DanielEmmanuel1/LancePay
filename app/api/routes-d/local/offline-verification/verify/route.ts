@@ -189,7 +189,7 @@ export async function PATCH(request: NextRequest) {
     // Database transaction: Update invoice, create transaction, update manual payment
     const now = new Date()
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       // Update invoice
       await tx.invoice.update({
         where: { id: manualPayment.invoice.id },
@@ -255,7 +255,7 @@ export async function PATCH(request: NextRequest) {
       const { sendManualPaymentVerifiedEmail } = await import('@/lib/email')
       await sendManualPaymentVerifiedEmail({
         to: updatedInvoice.clientEmail,
-        clientName: manualPayment.clientName,
+        clientName: manualPayment.invoice.clientName || 'Valued Client',
         invoiceNumber: updatedInvoice.invoiceNumber,
         amountPaid: ngnAmount,
         currency: manualPayment.currency,

@@ -17,7 +17,9 @@ export async function hasUSDCTrustline(publicKey: string): Promise<boolean> {
     return account.balances.some(
       (balance) =>
         balance.asset_type !== "native" &&
+        'asset_code' in balance &&
         balance.asset_code === USDC_ASSET.code &&
+        'asset_issuer' in balance &&
         balance.asset_issuer === USDC_ASSET.issuer
     );
   } catch (error) {

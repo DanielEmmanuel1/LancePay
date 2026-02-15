@@ -25,9 +25,14 @@ interface Transaction {
 }
 
 interface Portfolio {
-  totalValue: number;
-  currency: string;
-  assets: any[];
+  available?: { display: string }
+  localEquivalent?: { display: string; rate: number }
+  xlm?: number
+  usdc?: string | number
+  usd?: string | number
+  totalValue?: number
+  currency?: string
+  assets?: any[]
 }
 
 export default function DashboardPage() {
@@ -60,7 +65,7 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [getAccessToken]) 
+  }, [getAccessToken])
 
   useEffect(() => {
     fetchData()
@@ -72,12 +77,6 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {isMockMode && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
-          <strong>Demo Mode:</strong> You're viewing mock data. API calls are
-          disabled.
-        </div>
-      )}
 
       <div>
         <p className="text-sm text-brand-gray mb-1">Dashboard</p>
@@ -85,8 +84,7 @@ export default function DashboardPage() {
       </div>
 
       <BalanceCard
-        totalValue={balance?.totalValue || 0}
-        currency={balance?.currency || 'USD'}
+        balance={balance}
         isLoading={isLoading}
       />
 

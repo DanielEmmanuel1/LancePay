@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create advance record in transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Create payment advance record
       const advance = await tx.paymentAdvance.create({
         data: {

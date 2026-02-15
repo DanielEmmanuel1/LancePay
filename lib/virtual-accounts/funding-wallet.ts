@@ -21,7 +21,7 @@ export function getFundingWallet(): {
   if (!secretKey) {
     throw new Error(
       "STELLAR_FUNDING_WALLET_SECRET not configured. " +
-        "This wallet is required to credit users with USDC after virtual account deposits.",
+      "This wallet is required to credit users with USDC after virtual account deposits.",
     );
   }
 
@@ -57,13 +57,15 @@ export async function checkFundingWalletBalance(): Promise<number> {
     // const usdcBalance = balances.find(
     //   (b) => b.asset_code === "USDC" && b.asset_issuer === usdcIssuer,
     // );
-    const usdcBalance = balances.usdc;
+    const usdcBalanceObj = balances.find(
+      (b: any) => b.asset_code === "USDC" && b.asset_issuer === usdcIssuer,
+    );
 
-    if (!usdcBalance) {
+    if (!usdcBalanceObj) {
       return 0;
     }
 
-    return parseFloat(usdcBalance);
+    return parseFloat(usdcBalanceObj.balance);
   } catch (error) {
     throw new Error(
       `Failed to check funding wallet balance: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -84,8 +86,8 @@ export async function ensureSufficientBalance(
   if (currentBalance < requiredAmount + minimumReserve) {
     throw new Error(
       `Insufficient USDC in funding wallet. ` +
-        `Current: $${currentBalance}, Required: $${requiredAmount + minimumReserve} ` +
-        `(includes $${minimumReserve} reserve)`,
+      `Current: $${currentBalance}, Required: $${requiredAmount + minimumReserve} ` +
+      `(includes $${minimumReserve} reserve)`,
     );
   }
 }

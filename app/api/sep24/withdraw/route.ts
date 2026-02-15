@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { anchorId, amount, asset = 'USDC' } = body;
 
-  if (!anchorId || !ANCHOR_CONFIGS[anchorId]) {
+  if (!anchorId || !ANCHOR_CONFIGS[anchorId as AnchorId]) {
     return NextResponse.json({ error: 'Invalid anchor ID' }, { status: 400 });
   }
 
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
 
   const user = await prisma.user.findUnique({
     where: { privyId: claims.userId },
-    include: { 
+    include: {
       wallet: true,
       anchorSessions: {
         where: { anchorId },
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Determine withdraw type based on anchor
-    const withdrawType = ANCHOR_CONFIGS[anchorId].withdrawTypes[0];
+    const withdrawType = ANCHOR_CONFIGS[anchorId as AnchorId].withdrawTypes[0];
 
     // Create withdrawal transaction record
     const withdrawalTx = await prisma.withdrawalTransaction.create({

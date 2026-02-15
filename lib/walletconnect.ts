@@ -1,4 +1,5 @@
 import { SignClient } from "@walletconnect/sign-client";
+type SignClientType = InstanceType<typeof SignClient>;
 import type { SessionTypes } from "@walletconnect/types";
 
 /**
@@ -27,13 +28,13 @@ const STELLAR_CHAIN_ID =
 /**
  * WalletConnect client instance
  */
-let signClient: SignClient | null = null;
+let signClient: SignClientType | null = null;
 let currentSession: SessionTypes.Struct | null = null;
 
 /**
  * Initialize WalletConnect SignClient
  */
-export async function initWalletConnect(): Promise<SignClient> {
+export async function initWalletConnect(): Promise<SignClientType> {
   if (signClient) return signClient;
 
   signClient = await SignClient.init({

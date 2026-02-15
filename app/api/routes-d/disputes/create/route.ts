@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const existing = await prisma.dispute.findUnique({ where: { invoiceId: invoice.id } })
     if (existing) return NextResponse.json({ error: 'A dispute already exists for this invoice' }, { status: 409 })
 
-    const created = await prisma.$transaction(async (tx) => {
+    const created = await prisma.$transaction(async (tx: any) => {
       const dispute = await tx.dispute.create({
         data: {
           invoiceId: invoice.id,

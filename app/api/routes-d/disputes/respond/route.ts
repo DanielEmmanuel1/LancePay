@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const senderType = senderTypeForDispute({ isAdmin: admin, isFreelancer, isClient })
     if (!senderType) return NextResponse.json({ error: 'Not authorized to respond to this dispute' }, { status: 403 })
 
-    const created = await prisma.$transaction(async (tx) => {
+    const created = await prisma.$transaction(async (tx: any) => {
       const msg = await tx.disputeMessage.create({
         data: {
           disputeId: dispute.id,

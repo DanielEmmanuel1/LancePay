@@ -74,6 +74,19 @@ export async function GET(request: NextRequest) {
     const usdcAsset = assets.find(a => a.code === 'USDC');
     const xlmAsset = assets.find(a => a.code === 'XLM');
 
+    const usdAmount = usdcAsset ? parseFloat(usdcAsset.balance) : 0;
+
+    // Get exchange rate
+    const { getUsdToNgnRate } = await import('@/lib/exchange-rate');
+    const { rate: exchangeRate } = await getUsdToNgnRate();
+    const ngnAmount = usdAmount * exchangeRate;
+
+    // Get pending invoices
+    const pendingInvoices = await prisma.invoice.aggregate({
+      where: { userId: user.id, status: 'pending' },
+      _sum: { amount: true }
+    });
+
     // XLM reserve (Stellar base reserve is 1 XLM + 0.5 XLM per trustline/entry)
     // Default is ~1.5 XLM for a typical account with USDC trustline
     const xlmReserve = 1.5
@@ -83,14 +96,11 @@ export async function GET(request: NextRequest) {
       available: { amount: usdAmount, currency: 'USD', display: `$${usdAmount.toFixed(2)}` },
       localEquivalent: { amount: ngnAmount, currency: 'NGN', display: `₦${ngnAmount.toLocaleString()}`, rate: exchangeRate },
       pending: { amount: Number(pendingInvoices._sum.amount || 0), currency: 'USD' },
-      xlm: xlmReserve,
-      usd: usdc,
-      xlm: xlm,
-      address: user.wallet.address,
-      assets,
-      // Legacy fields for backward compat
+      xlmReserve,
       usd: usdcAsset?.balance || '0',
       xlm: xlmAsset?.balance || '0',
+      address: user.wallet.address,
+      assets,
     })
   } catch (error) {
     console.error('Balance GET error:', error)

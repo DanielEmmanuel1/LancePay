@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         resolution: dispute.resolution ?? undefined,
         createdAt: dispute.createdAt.toISOString(),
       },
-      messages: dispute.messages.map((m) => ({
+      messages: dispute.messages.map((m: any) => ({
         id: m.id,
         senderType: m.senderType,
         senderEmail: m.senderEmail,

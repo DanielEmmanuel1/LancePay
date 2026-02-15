@@ -63,12 +63,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   // Update invoice and create transaction in a single transaction
-  const updatedInvoice = await prisma.$transaction(async (tx) => {
+  const updatedInvoice = await prisma.$transaction(async (tx: any) => {
     await tx.invoice.update({
       where: { id: invoice.id },
       data: { status: 'paid', paidAt: new Date() }
     })
-    
+
     await tx.transaction.create({
       data: {
         userId: invoice.userId,
@@ -91,12 +91,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (!updatedInvoice) {
     return NextResponse.json({ error: 'Failed to update invoice' }, { status: 500 })
   }
-  ])
-  const updatedInvoice = await prisma.invoice.update({
-    where: { id: invoice.id },
-    data: { status: 'paid', paidAt: new Date() },
-    include: { user: true }
-  })
 
   // Log audit event for payment
   await logAuditEvent(invoice.id, 'invoice.paid', null, extractRequestMetadata(request.headers))

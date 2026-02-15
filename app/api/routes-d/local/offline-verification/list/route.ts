@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
             id: true,
             invoiceNumber: true,
             clientEmail: true,
+            clientName: true,
             amount: true,
             currency: true,
             status: true,
@@ -62,11 +63,11 @@ export async function GET(request: NextRequest) {
     })
 
     // Map to response format
-    const response = payments.map((p) => ({
+    const response = payments.map((p: any) => ({
       id: p.id,
       invoiceNumber: p.invoice.invoiceNumber,
       invoiceId: p.invoice.id,
-      clientName: p.clientName,
+      clientName: p.invoice.clientName,
       amountPaid: Number(p.amountPaid),
       currency: p.currency,
       receiptUrl: `/api/routes-d/local/offline-verification/receipt/${p.id}`,

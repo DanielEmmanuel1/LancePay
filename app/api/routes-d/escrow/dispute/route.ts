@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     if (invoice.escrowStatus !== 'held') return NextResponse.json({ error: `Invalid escrow status: ${invoice.escrowStatus}` }, { status: 400 })
 
     const now = new Date()
-    const updated = await prisma.$transaction(async (tx) => {
+    const updated = await prisma.$transaction(async (tx: any) => {
       const inv = await tx.invoice.update({
         where: { id: invoice.id },
         data: { escrowStatus: 'disputed', escrowDisputedAt: now },

@@ -8,12 +8,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyAuthToken } from '@/lib/auth';
-import { 
-  getChallenge, 
-  verifyChallenge, 
+import {
+  getChallenge,
+  verifyChallenge,
   submitSignedChallenge,
   prepareForWalletSigning,
-  isTokenExpired 
+  isTokenExpired
 } from '@/lib/stellar/sep10';
 import { type AnchorId, ANCHOR_CONFIGS } from '@/lib/stellar/anchors';
 
@@ -33,15 +33,15 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const anchorId = searchParams.get('anchorId') as AnchorId;
 
-  if (!anchorId || !ANCHOR_CONFIGS[anchorId]) {
+  if (!anchorId || !ANCHOR_CONFIGS[anchorId as AnchorId]) {
     return NextResponse.json({ error: 'Invalid anchor ID' }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({ 
+  const user = await prisma.user.findUnique({
     where: { privyId: claims.userId },
     include: { wallet: true, anchorSessions: true }
   });
-  
+
   if (!user) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 
   // Check for existing valid session
   const existingSession = user.anchorSessions.find(
-    s => s.anchorId === anchorId && !isTokenExpired(s.expiresAt)
+    (s: any) => s.anchorId === anchorId && !isTokenExpired(s.expiresAt)
   );
 
   if (existingSession) {
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { anchorId, action, signedXdr } = body;
 
-  if (!anchorId || !ANCHOR_CONFIGS[anchorId]) {
+  if (!anchorId || !ANCHOR_CONFIGS[anchorId as AnchorId]) {
     return NextResponse.json({ error: 'Invalid anchor ID' }, { status: 400 });
   }
 
@@ -95,11 +95,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({ 
+  const user = await prisma.user.findUnique({
     where: { privyId: claims.userId },
     include: { wallet: true }
   });
-  
+
   if (!user) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
@@ -112,24 +112,24 @@ export async function POST(request: NextRequest) {
     if (action === 'challenge') {
       // Step 1: Get challenge from anchor
       const challenge = await getChallenge(anchorId, user.wallet.address);
-      
+
       // Verify the challenge is legitimate
       const isValid = await verifyChallenge(
-        challenge.transaction, 
-        anchorId, 
+        challenge.transaction,
+        anchorId,
         user.wallet.address
       );
-      
+
       if (!isValid) {
         return NextResponse.json(
-          { error: 'Invalid challenge from anchor' }, 
+          { error: 'Invalid challenge from anchor' },
           { status: 400 }
         );
       }
-      
+
       // Return challenge for client-side signing
       const signingData = prepareForWalletSigning(challenge.transaction);
-      
+
       return NextResponse.json({
         action: 'sign_challenge',
         ...signingData,
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
       // Step 2: Submit signed challenge and get JWT
       if (!signedXdr) {
         return NextResponse.json(
-          { error: 'Missing signed transaction' }, 
+          { error: 'Missing signed transaction' },
           { status: 400 }
         );
       }

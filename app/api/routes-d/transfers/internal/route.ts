@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
 
     // Record transactions for both parties
     const now = new Date()
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       // Sender's "sent" transaction
       // Note: We use externalId to store a unique identifier for correlation
       // and error field to store memo if needed (since no memo field exists)

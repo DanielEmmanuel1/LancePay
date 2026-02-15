@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     // Must be unpaid.
     if (invoice.status !== 'pending') return NextResponse.json({ error: 'Escrow can only be enabled on unpaid invoices' }, { status: 400 })
 
-    const updated = await prisma.$transaction(async (tx) => {
+    const updated = await prisma.$transaction(async (tx: any) => {
       const inv = await tx.invoice.update({
         where: { id: invoice.id },
         data: {

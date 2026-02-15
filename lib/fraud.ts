@@ -165,7 +165,7 @@ export async function performFraudCheck(
       entityType,
       entityId,
       riskScore,
-      signals: allSignals,
+      signals: allSignals as any,
       status: status === 'allowed' ? 'logged' : status,
     },
   })

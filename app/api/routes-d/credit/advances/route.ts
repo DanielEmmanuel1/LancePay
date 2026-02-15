@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      advances: advances.map((adv) => ({
+      advances: advances.map((adv: any) => ({
         id: adv.id,
         invoiceNumber: adv.invoice.invoiceNumber,
         invoiceAmount: Number(adv.invoice.amount),

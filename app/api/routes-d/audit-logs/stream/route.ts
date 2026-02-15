@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     },
   })
 
-  const formattedEvents = events.map((event) => {
+  const formattedEvents = events.map((event: any) => {
     const isValid = verifySignature(
       event.invoiceId,
       event.eventType,

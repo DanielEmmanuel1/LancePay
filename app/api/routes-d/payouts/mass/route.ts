@@ -35,7 +35,7 @@ async function calculateEstimatedGasFees(itemCount: number): Promise<number> {
   const baseFeeXLM = 0.0001;
   const estimatedXLM = baseFeeXLM * itemCount;
   const estimatedUSDC = estimatedXLM * 0.1; // Conservative conversion rate
-  
+
   return estimatedUSDC;
 }
 
@@ -99,7 +99,7 @@ async function processPayoutItem(
   } catch (error: any) {
     console.error('Error processing payout item:', error);
     const errorMessage = error?.message || 'Unknown error occurred';
-    
+
     return { success: false, errorMessage };
   }
 }
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
     // Validate each item
     for (let i = 0; i < body.items.length; i++) {
       const item = body.items[i];
-      
+
       if (!item.amount || !item.recipient || !item.type) {
         return NextResponse.json(
           { error: `Invalid item at index ${i}: amount, recipient, and type are required` },
@@ -200,8 +200,9 @@ export async function POST(request: NextRequest) {
     );
 
     // Get user's current balance
-    const balance = await getAccountBalance(userWallet.address);
-    const userBalanceUSDC = parseFloat(balance.usdc);
+    const balances = await getAccountBalance(userWallet.address);
+    const usdcBalance = balances.find((b: any) => b.asset_code === 'USDC' && b.asset_issuer === process.env.NEXT_PUBLIC_USDC_ISSUER);
+    const userBalanceUSDC = usdcBalance ? parseFloat(usdcBalance.balance) : 0;
 
     // Calculate estimated gas fees
     const estimatedGasFees = await calculateEstimatedGasFees(body.items.length);
@@ -210,7 +211,7 @@ export async function POST(request: NextRequest) {
     // Check if user has sufficient balance
     if (userBalanceUSDC < totalRequired) {
       return NextResponse.json(
-        { 
+        {
           error: 'Insufficient balance',
           details: {
             required: totalRequired,
@@ -256,7 +257,7 @@ export async function POST(request: NextRequest) {
     const payoutPromises = body.items.map(async (item, index) => {
       const payoutItem = batch.items[index];
       const result = await processPayoutItem(item, userId, userWallet, batch.batch.id);
-      
+
       // Update payout item status
       await prisma.payoutItem.update({
         where: { id: payoutItem.id },
@@ -298,9 +299,9 @@ export async function POST(request: NextRequest) {
     });
 
     // Update batch status
-    const finalStatus = failureCount === 0 ? 'completed' : 
-                       successCount === 0 ? 'partial_failure' : 
-                       'partial_failure';
+    const finalStatus = failureCount === 0 ? 'completed' :
+      successCount === 0 ? 'partial_failure' :
+        'partial_failure';
 
     await prisma.payoutBatch.update({
       where: { id: batch.batch.id },
@@ -324,7 +325,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Mass payout error:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -372,7 +373,7 @@ export async function GET(request: NextRequest) {
 
     // Get batch with items
     const batch = await prisma.payoutBatch.findUnique({
-      where: { 
+      where: {
         id: batchId,
         userId: user.id // Ensure user can only access their own batches
       },
@@ -409,7 +410,7 @@ export async function GET(request: NextRequest) {
       batch: {
         id: batch.id,
         totalAmount: batch.totalAmount,
-        itemCount: batch.itemCount,
+        itemCount: batch.totalRecipients,
         status: batch.status,
         createdAt: batch.createdAt,
         summary: {
@@ -424,7 +425,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Get batch status error:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error'
       },

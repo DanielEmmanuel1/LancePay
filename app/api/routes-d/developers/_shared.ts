@@ -54,7 +54,7 @@ export async function authenticateApiKey(
   prisma.apiKey.update({
     where: { id: apiKeyRecord.id },
     data: { lastUsedAt: new Date() }
-  }).catch(err => console.error('Failed to update lastUsedAt:', err))
+  }).catch((err: unknown) => console.error('Failed to update lastUsedAt:', err))
 
   return {
     success: true,

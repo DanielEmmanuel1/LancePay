@@ -235,7 +235,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'One or more signer users were not found' }, { status: 404 })
     }
 
-    const created = await prisma.$transaction(async (tx) => {
+    const created = await prisma.$transaction(async (tx: any) => {
       const wallet = await tx.collectiveWallet.create({
         data: {
           name,

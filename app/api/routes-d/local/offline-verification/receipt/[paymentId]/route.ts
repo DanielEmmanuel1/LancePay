@@ -64,6 +64,10 @@ export async function GET(
     }
 
     // Get file path
+    if (!payment.receiptUrl) {
+      return NextResponse.json({ error: 'Receipt not found' }, { status: 404 })
+    }
+
     const absolutePath = getReceiptAbsolutePath(payment.receiptUrl)
     if (!absolutePath) {
       return NextResponse.json(

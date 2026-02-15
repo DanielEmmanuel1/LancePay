@@ -44,7 +44,7 @@ export function createBadgeMetadata(
     name: badgeName,
     description,
     image: imageUrl,
-    attributes,
+    attributes: attributes as LancePayBadgeMetadata['attributes'],
     external_url: `${process.env.NEXT_PUBLIC_APP_URL}/badges`,
   };
 }

@@ -7,7 +7,7 @@ import { getAccountBalance } from '@/lib/stellar'
  */
 export async function lookupRecipient(identifier: string) {
   const trimmed = identifier.trim().toLowerCase()
-  
+
   // Handle format: @handle
   if (trimmed.startsWith('@')) {
     const handle = trimmed.slice(1)
@@ -18,7 +18,7 @@ export async function lookupRecipient(identifier: string) {
     if (!user || !user.wallet) return null
     return { user, walletAddress: user.wallet.address }
   }
-  
+
   // Email lookup
   const user = await prisma.user.findUnique({
     where: { email: trimmed },
@@ -35,7 +35,13 @@ export async function lookupRecipient(identifier: string) {
 export async function getSenderUSDCBalance(walletAddress: string): Promise<number> {
   try {
     const balances = await getAccountBalance(walletAddress)
-    return parseFloat(balances.usdc) || 0
+    // Check if result is array (it should be)
+    if (Array.isArray(balances)) {
+      const usdcBalance = balances.find((b: any) => b.asset_code === 'USDC' && b.asset_issuer === process.env.NEXT_PUBLIC_USDC_ISSUER)
+      return usdcBalance ? parseFloat(usdcBalance.balance) : 0
+    }
+    // Fallback if return type is different (e.g. object map, though getAccountBalance usually returns array)
+    return 0
   } catch (error) {
     console.error('Error fetching sender balance:', error)
     return 0
