@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN "taxPercentage" DOUBLE PRECISION NOT NULL DEFAULT 0;
+
+-- AlterTable
+ALTER TABLE "SavingsGoal" ADD COLUMN "isTaxVault" BOOLEAN NOT NULL DEFAULT false;

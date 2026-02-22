@@ -8,6 +8,7 @@ import { AssetList } from '@/components/dashboard/asset-list'
 import { TrustlineManager } from '@/components/dashboard/trustline-manager'
 import { QuickActions } from '@/components/dashboard/quick-actions'
 import { TransactionList } from '@/components/dashboard/transaction-list'
+import { TaxVaultCard } from '@/components/dashboard/tax-vault-card'
 
 interface Transaction {
   id: string;
@@ -41,6 +42,8 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<{ name?: string } | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [taxPercentage, setTaxPercentage] = useState(0)
+  const [taxVaultBalance, setTaxVaultBalance] = useState(0)
 
   const fetchData = useCallback(async () => {
     try {
@@ -50,17 +53,23 @@ export default function DashboardPage() {
       // Sync wallet first (ensures wallet is stored in DB)
       await fetch('/api/user/sync-wallet', { method: 'POST', headers })
 
-      // Then fetch balance, profile, and transactions
-      const [balanceRes, profileRes, transactionsRes] = await Promise.all([
+      // Then fetch balance, profile, transactions, and tax vault
+      const [balanceRes, profileRes, transactionsRes, taxRes] = await Promise.all([
         fetch('/api/user/balance', { headers }),
         fetch('/api/user/profile', { headers }),
         fetch('/api/transactions', { headers }),
+        fetch('/api/routes-d/tax-vault', { headers }),
       ])
       if (balanceRes.ok) setBalance(await balanceRes.json())
       if (profileRes.ok) setProfile(await profileRes.json())
       if (transactionsRes.ok) {
         const data = await transactionsRes.json()
         setTransactions(data.transactions || [])
+      }
+      if (taxRes.ok) {
+        const taxData = await taxRes.json()
+        setTaxPercentage(taxData.taxPercentage ?? 0)
+        setTaxVaultBalance(taxData.taxVault?.currentAmountUsdc ?? 0)
       }
     } finally {
       setIsLoading(false)
@@ -85,6 +94,13 @@ export default function DashboardPage() {
 
       <BalanceCard
         balance={balance}
+        isLoading={isLoading}
+      />
+
+      <TaxVaultCard
+        taxPercentage={taxPercentage}
+        taxVaultBalance={taxVaultBalance}
+        totalBalance={balance?.totalValue ?? 0}
         isLoading={isLoading}
       />
 
