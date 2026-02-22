@@ -3,29 +3,16 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: false,
 
+  // CSP with dynamic nonce is handled entirely in middleware.ts
+  // Only keep headers that are truly static and don't require a nonce
   async headers() {
     return [
       {
         source: "/(.*)",
         headers: [
-          // Static security headers that don't need a nonce live here.
-          // CSP (with dynamic nonce) is handled in middleware.ts.
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            key: "X-Frame-Options",
-            value: "SAMEORIGIN",
-          },
-          {
-            key: "X-XSS-Protection",
-            value: "1; mode=block",
-          },
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
+          // Add any static, non-CSP headers here if needed
+          // e.g. frame-ancestors for SEP-24 anchor embedding
+          // { key: "Content-Security-Policy", value: "frame-ancestors 'self' https://*.moneygram.com" }
         ],
       },
     ];
