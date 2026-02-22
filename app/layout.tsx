@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk, Space_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import { Toaster } from "sonner";
 import { DevModeBanner } from "@/components/DevModeBanner";
+import { getNonce } from "@/lib/csp-nonce";
 import "./globals.css";
 
 // Optimize fonts with next/font/google and swap display strategy
@@ -33,11 +34,12 @@ export const metadata: Metadata = {
     "The fastest way for Nigerian freelancers to receive international payments.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const nonce = await getNonce();
   return (
     <html
       lang="en"
@@ -47,7 +49,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <Providers>{children}</Providers>
         <Toaster position="top-right" richColors />
-        <DevModeBanner />
+        <DevModeBanner nonce={nonce} />
       </body>
     </html>
   );
