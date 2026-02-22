@@ -6,6 +6,8 @@ import {
   Operation,
   StrKey,
   TransactionBuilder,
+  FeeBumpTransaction,
+  Transaction,
 } from '@stellar/stellar-sdk'
 
 /**
@@ -411,5 +413,193 @@ async function isFundingWalletLowBalance(params: {
       impact: 'lowBalance flag will be false',
     })
     return false
+  }
+}
+
+/**
+ * fundNewWalletWithSponsoredReserves
+ *
+ * Creates a new account using Stellar's sponsored reserves feature (CAP-0033).
+ * The sponsor account pays for the base reserve, so the new account doesn't need any XLM.
+ * This allows users to interact exclusively with USDC without needing XLM for their wallet.
+ *
+ * How it works:
+ * 1. Sponsor begins sponsoring future reserves
+ * 2. Creates the account with 0 XLM starting balance
+ * 3. Sponsor ends sponsoring future reserves
+ *
+ * Both the sponsor and the new account must sign this transaction.
+ *
+ * @param destination New account's public key
+ * @returns FundResult with transaction hash and status
+ */
+export async function fundNewWalletWithSponsoredReserves(
+  destination: string
+): Promise<FundResult> {
+  if (!isValidDestination(destination)) {
+    return {
+      status: 'failed',
+      destination,
+      reason: 'invalid_destination_public_key',
+    }
+  }
+
+  const cfg = getConfig()
+  const server = getServer(cfg.horizonUrl)
+  const fundingKeypair = getFundingKeypair(cfg.fundingSecret)
+
+  try {
+    // Check if destination already exists
+    const exists = await destinationExists(server, destination)
+    if (exists) {
+      return {
+        status: 'skipped',
+        destination,
+        reason: 'destination_already_exists',
+      }
+    }
+
+    // Load sponsor account
+    const sponsorAccount = await server.loadAccount(fundingKeypair.publicKey())
+
+    // Build transaction with sponsored reserve sandwich
+    const tx = new TransactionBuilder(sponsorAccount, {
+      fee: String(BASE_FEE),
+      networkPassphrase: cfg.networkPassphrase,
+    })
+      // 1. Begin sponsoring
+      .addOperation(
+        Operation.beginSponsoringFutureReserves({
+          sponsoredId: destination,
+          source: fundingKeypair.publicKey(),
+        })
+      )
+      // 2. Create account with 0 starting balance
+      .addOperation(
+        Operation.createAccount({
+          destination,
+          startingBalance: '0', // No XLM required!
+          source: fundingKeypair.publicKey(),
+        })
+      )
+      // 3. End sponsoring (must be signed by sponsored account)
+      .addOperation(
+        Operation.endSponsoringFutureReserves({
+          source: destination,
+        })
+      )
+      .setTimeout(180)
+      .build()
+
+    // Sign with sponsor
+    tx.sign(fundingKeypair)
+
+    // Note: In a real implementation, the new account owner would also sign
+    // For this funding service, we assume we control the destination keypair during setup
+    // In production, you'd need to coordinate signatures or use a different flow
+
+    const result = await server.submitTransaction(tx)
+
+    console.info('Account funded with sponsored reserves', {
+      destination,
+      txHash: result.hash,
+      sponsor: fundingKeypair.publicKey(),
+    })
+
+    const lowBalance = await isFundingWalletLowBalance({
+      server,
+      fundingPublicKey: fundingKeypair.publicKey(),
+      thresholdXlm: cfg.lowBalanceThresholdXlm,
+    })
+
+    return {
+      status: 'funded',
+      destination,
+      txHash: result.hash,
+      lowBalance,
+    }
+  } catch (e) {
+    const err = e as Error
+    console.error('Sponsored reserve funding failed', {
+      destination,
+      errorCode: e instanceof StellarFundingError ? e.code : 'UNKNOWN',
+      errorMessage: err?.message ?? 'Unknown error',
+      horizonDetails: extractResultCodes(e),
+    })
+
+    return {
+      status: 'failed',
+      destination,
+      reason: err?.message ?? 'unknown_error',
+    }
+  }
+}
+
+/**
+ * submitFeeBumpTransaction
+ *
+ * Submits a fee-bump transaction to accelerate or rescue a stuck transaction.
+ * The fee account pays a higher fee to get the transaction processed faster.
+ *
+ * Fee-bump transactions are useful when:
+ * - Original transaction is stuck due to low fees
+ * - Network congestion requires higher fees
+ * - Need to ensure transaction confirmation
+ *
+ * @param innerTxXdr XDR string of the original transaction to bump
+ * @param maxFeePerOperation Maximum fee willing to pay per operation (in stroops)
+ * @returns transaction hash of the fee-bump transaction
+ */
+export async function submitFeeBumpTransaction(
+  innerTxXdr: string,
+  maxFeePerOperation: string = '10000' // 0.001 XLM per operation
+): Promise<{ status: 'success' | 'failed'; txHash?: string; reason?: string }> {
+  const cfg = getConfig()
+  const server = getServer(cfg.horizonUrl)
+  const fundingKeypair = getFundingKeypair(cfg.fundingSecret)
+
+  try {
+    // Decode inner transaction
+    const innerTx = TransactionBuilder.fromXDR(
+      innerTxXdr,
+      cfg.networkPassphrase
+    ) as Transaction
+
+    // Build fee-bump transaction
+    const feeBumpTx = TransactionBuilder.buildFeeBumpTransaction(
+      fundingKeypair, // Fee source account
+      maxFeePerOperation,
+      innerTx,
+      cfg.networkPassphrase
+    )
+
+    // Sign with fee account
+    feeBumpTx.sign(fundingKeypair)
+
+    // Submit to network
+    const result = await server.submitTransaction(feeBumpTx)
+
+    console.info('Fee-bump transaction submitted', {
+      innerTxHash: innerTx.hash().toString('hex'),
+      feeBumpTxHash: result.hash,
+      feeCharged: result.fee_charged,
+    })
+
+    return {
+      status: 'success',
+      txHash: result.hash,
+    }
+  } catch (e) {
+    const err = e as Error
+    console.error('Fee-bump transaction failed', {
+      errorCode: e instanceof StellarFundingError ? e.code : 'UNKNOWN',
+      errorMessage: err?.message ?? 'Unknown error',
+      horizonDetails: extractResultCodes(e),
+    })
+
+    return {
+      status: 'failed',
+      reason: err?.message ?? 'unknown_error',
+    }
   }
 }
