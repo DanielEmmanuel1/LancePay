@@ -1,4 +1,4 @@
-import { Horizon, Networks, Asset, Keypair, TransactionBuilder, Operation, StrKey, Transaction, Memo, AuthFlag } from "@stellar/stellar-sdk";
+import { Horizon, Networks, Asset, Keypair, TransactionBuilder, Operation, StrKey, Transaction, Memo, AuthFlag, BASE_FEE } from "@stellar/stellar-sdk";
 
 /**
  * Stellar Network Configuration
@@ -638,5 +638,147 @@ export async function fetchFullTransactionHistory(
   } catch (error) {
     console.error('Error fetching Stellar transaction history:', error)
     return []
+  }
+}
+
+/**
+ * Interface for path payment quote
+ */
+export interface PathPaymentQuote {
+  sourceAsset: Asset
+  sourceAmount: string
+  destinationAsset: Asset
+  destinationAmount: string
+  path: Asset[]
+}
+
+/**
+ * Calculate the required send amount for a strict-receive path payment
+ * Queries Horizon's strict_receive_paths endpoint to find the best conversion path
+ * @param sourceAsset The asset to send (e.g., XLM, EURT)
+ * @param destinationAsset The asset to receive (e.g., USDC)
+ * @param destinationAmount The exact amount to receive
+ * @param sourcePublicKey Source account public key
+ * @returns Promise<PathPaymentQuote> Quote with required send amount and path
+ * @throws StellarError
+ */
+export async function calculateStrictReceivePath(
+  sourceAsset: Asset,
+  destinationAsset: Asset,
+  destinationAmount: string,
+  sourcePublicKey: string
+): Promise<PathPaymentQuote> {
+  try {
+    // Query Horizon for strict receive paths using source account
+    const pathsCallBuilder = server
+      .strictReceivePaths(sourcePublicKey, destinationAsset, destinationAmount)
+      .limit(1)
+
+    const pathsResponse = await pathsCallBuilder.call()
+
+    if (pathsResponse.records.length === 0) {
+      throw {
+        type: "payment_failed",
+        message: "No path found for this asset pair. The destination asset may not have sufficient liquidity on the DEX.",
+      } as StellarError
+    }
+
+    const bestPath = pathsResponse.records[0]
+
+    return {
+      sourceAsset,
+      sourceAmount: bestPath.source_amount,
+      destinationAsset,
+      destinationAmount,
+      path: bestPath.path.map((p: any) =>
+        p.asset_type === 'native'
+          ? Asset.native()
+          : new Asset(p.asset_code, p.asset_issuer)
+      ),
+    }
+  } catch (error: unknown) {
+    console.error("Error calculating strict receive path:", error)
+
+    if (error && typeof error === "object" && "type" in error) {
+      throw error
+    }
+
+    throw {
+      type: "network_error",
+      message: "Failed to calculate path payment route.",
+    } as StellarError
+  }
+}
+
+/**
+ * Send a path payment with strict receive
+ * Allows paying with one asset (e.g., XLM, EURT) while recipient receives exact amount in another asset (e.g., USDC)
+ * @param fromSecretKey Sender's secret key
+ * @param toPublicKey Recipient's public key
+ * @param sendAsset Asset to send
+ * @param sendMax Maximum amount willing to send
+ * @param destAsset Asset recipient will receive
+ * @param destAmount Exact amount recipient will receive
+ * @param path Optional array of assets to use as conversion path
+ * @returns transaction hash
+ * @throws StellarError
+ */
+export async function sendPathPayment(
+  fromSecretKey: string,
+  toPublicKey: string,
+  sendAsset: Asset,
+  sendMax: string,
+  destAsset: Asset,
+  destAmount: string,
+  path?: Asset[]
+): Promise<string> {
+  if (!isValidStellarAddress(toPublicKey)) {
+    throw {
+      type: "invalid_address",
+      message: "Invalid recipient Stellar address.",
+    } as StellarError
+  }
+
+  try {
+    const senderKeypair = Keypair.fromSecret(fromSecretKey)
+    const account = await server.loadAccount(senderKeypair.publicKey())
+
+    const transaction = new TransactionBuilder(account, {
+      fee: BASE_FEE,
+      networkPassphrase: STELLAR_NETWORK,
+    })
+      .addOperation(
+        Operation.pathPaymentStrictReceive({
+          sendAsset,
+          sendMax,
+          destination: toPublicKey,
+          destAsset,
+          destAmount,
+          path: path || [],
+        })
+      )
+      .setTimeout(30)
+      .build()
+
+    transaction.sign(senderKeypair)
+
+    const txResult = await server.submitTransaction(transaction)
+
+    return txResult.hash
+  } catch (err: unknown) {
+    console.error("Error sending path payment:", err)
+
+    let message = "Failed to send path payment."
+
+    if (err && typeof err === "object") {
+      const stellarError = err as StellarErrorResponse
+      const opsMessage =
+        stellarError.response?.data?.extras?.result_codes?.operations?.[0]
+      if (opsMessage) {
+        message = `${message} Reason: ${opsMessage}`
+      }
+    }
+
+    throw { type: "payment_failed", message } as StellarError
   }
 }
