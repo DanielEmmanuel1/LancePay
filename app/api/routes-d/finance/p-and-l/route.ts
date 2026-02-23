@@ -108,6 +108,20 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // 4. Fetch Logged Expenses (same period)
+    const loggedExpenses = await prisma.expense.findMany({
+      where: {
+        userId: user.id,
+        expenseDate: { gte: start, lt: end },
+      },
+      orderBy: { expenseDate: "asc" },
+      select: {
+        amount: true,
+        category: true,
+        currency: true,
+      },
+    });
+
     // Calculations
     const grossRevenue = round2(
       incomeTransactions.reduce(
@@ -127,8 +141,25 @@ export async function GET(request: NextRequest) {
       ),
     );
 
+    const loggedExpenseTotal = round2(
+      loggedExpenses.reduce((sum: number, e: any) => sum + Number(e.amount), 0),
+    );
+
+    const expenseByCategoryMap = new Map<string, number>();
+    for (const expense of loggedExpenses) {
+      expenseByCategoryMap.set(
+        expense.category,
+        (expenseByCategoryMap.get(expense.category) || 0) + Number(expense.amount),
+      );
+    }
+    const expenseBreakdown = Array.from(expenseByCategoryMap.entries())
+      .map(([category, amount]) => ({ category, amount: round2(amount) }))
+      .sort((a, b) => b.amount - a.amount);
+
+    const totalExpenses = round2(withdrawalFees + loggedExpenseTotal);
+
     // Net Profit
-    const netProfit = round2(grossRevenue - platformFees - withdrawalFees);
+    const netProfit = round2(grossRevenue - platformFees - totalExpenses);
 
     // Expected Revenue from pending invoices
     const expectedRevenue = round2(
@@ -156,8 +187,14 @@ export async function GET(request: NextRequest) {
         totalIncome: grossRevenue,
         platformFees,
         withdrawalFees,
+        loggedExpenses: loggedExpenseTotal,
+        totalExpenses,
         netProfit,
         expectedRevenue,
+      },
+      expenses: {
+        count: loggedExpenses.length,
+        byCategory: expenseBreakdown,
       },
       topClients,
       currency: incomeTransactions[0]?.currency || "USDC",

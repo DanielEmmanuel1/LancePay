@@ -215,9 +215,14 @@ export async function POST(request: NextRequest) {
     let encryptedSecretKey: string | null = null
 
     if (stellarSecretKey) {
-      const kp = Keypair.fromSecret(stellarSecretKey)
-      finalStellarAddress = kp.publicKey()
-      encryptedSecretKey = encrypt(stellarSecretKey)
+      try {
+        const normalized = stellarSecretKey.trim()
+        const kp = Keypair.fromSecret(normalized)
+        finalStellarAddress = kp.publicKey()
+        encryptedSecretKey = encrypt(normalized)
+      } catch {
+        return NextResponse.json({ error: 'Invalid stellarSecretKey' }, { status: 400 })
+      }
     }
 
     if (!finalStellarAddress) {

@@ -128,6 +128,8 @@ interface FinancialStatementData {
     totalIncome: number
     platformFees: number
     withdrawalFees: number
+    loggedExpenses?: number
+    totalExpenses?: number
     netProfit: number
   }
   topClients: Array<{ name: string; revenue: number }>
@@ -209,9 +211,15 @@ export const FinancialStatementPDF = ({ data, branding }: { data: FinancialState
             <Text style={styles.rowLabel}>Withdrawal Costs</Text>
             <Text style={styles.rowAmount}>{formatCurrency(data.summary.withdrawalFees)}</Text>
           </View>
+          <View style={styles.row}>
+            <Text style={styles.rowLabel}>Logged Expenses</Text>
+            <Text style={styles.rowAmount}>{formatCurrency(data.summary.loggedExpenses || 0)}</Text>
+          </View>
           <View style={styles.subTotalRow}>
             <Text style={styles.subTotalLabel}>Total Expenses</Text>
-            <Text style={styles.subTotalAmount}>{formatCurrency(data.summary.withdrawalFees)}</Text>
+            <Text style={styles.subTotalAmount}>
+              {formatCurrency(data.summary.totalExpenses ?? data.summary.withdrawalFees)}
+            </Text>
           </View>
         </View>
 

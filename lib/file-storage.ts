@@ -5,6 +5,7 @@ import { randomBytes } from 'crypto'
 
 const UPLOAD_BASE_DIR = path.join(process.cwd(), 'uploads')
 const RECEIPTS_DIR = path.join(UPLOAD_BASE_DIR, 'receipts')
+const EXPENSE_RECEIPTS_DIR = path.join(RECEIPTS_DIR, 'expenses')
 
 const ALLOWED_MIME_TYPES = [
   'image/jpeg',
@@ -109,6 +110,30 @@ export async function storeReceiptFile(
 
   // Return relative path for database
   return `/receipts/${invoiceId}/${filename}`
+}
+
+/**
+ * Store receipt file for a user expense entry
+ * Returns relative path for database storage
+ */
+export async function storeExpenseReceiptFile(
+  userId: string,
+  file: File
+): Promise<string> {
+  const userDir = path.join(EXPENSE_RECEIPTS_DIR, userId)
+  if (!existsSync(userDir)) {
+    await mkdir(userDir, { recursive: true })
+  }
+
+  const filename = generateUniqueFilename(file.name)
+  const filePath = path.join(userDir, filename)
+
+  const arrayBuffer = await file.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+
+  await writeFile(filePath, buffer)
+
+  return `/receipts/expenses/${userId}/${filename}`
 }
 
 /**
