@@ -19,7 +19,7 @@ describe("Claimable Balances Route Handlers", () => {
                 amount: "50",
             }),
             headers: new Headers({
-                "x-stellar-secret": "SA...",
+                "x-stellar-secret": "SA2N4YMM6E2MMZ332YQZYJ33BBY5ZMQZMM2MB33ZMQZY5ZMQZY5ZMQZY",
             }),
         } as unknown as NextRequest;
     };

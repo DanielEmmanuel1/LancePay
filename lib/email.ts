@@ -484,3 +484,35 @@ export async function sendTransferReceivedEmail(params: {
     `,
   })
 }
+
+// Invoice auto-cancelled email
+export async function sendInvoiceCancelledEmail(params: {
+  to: string
+  freelancerName: string
+  invoiceNumber: string
+  amount: number
+  dueDate: Date
+  daysOverdue: number
+  clientEmail: string
+}) {
+  const React = require('react')
+  const { renderToStaticMarkup } = require('react-dom/server')
+  const { InvoiceAutoCancelledEmail } = require('./email-templates/invoice-auto-cancelled')
+
+  const html = renderToStaticMarkup(
+    React.createElement(InvoiceAutoCancelledEmail, {
+      freelancerName: params.freelancerName,
+      invoiceNumber: params.invoiceNumber,
+      amount: params.amount,
+      dueDate: params.dueDate,
+      daysOverdue: params.daysOverdue,
+      clientEmail: params.clientEmail,
+    })
+  )
+
+  return sendEmail({
+    to: params.to,
+    subject: `❌ Invoice Auto-Cancelled - ${params.invoiceNumber}`,
+    html,
+  })
+}
