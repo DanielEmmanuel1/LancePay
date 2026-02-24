@@ -28,19 +28,32 @@ export async function POST(req: NextRequest) {
             success: true,
             transactionHash: result.hash,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error claiming balance:", error);
+
+        const err = error as {
+            response?: {
+                data?: {
+                    extras?: {
+                        result_codes?: {
+                            operations?: string[];
+                            transaction?: string
+                        }
+                    }
+                }
+            }
+        };
 
         let errorMessage = "Failed to claim balance";
 
-        if (error?.response?.data?.extras?.result_codes?.operations) {
-            const opCodes = error.response.data.extras.result_codes.operations;
+        if (err?.response?.data?.extras?.result_codes?.operations) {
+            const opCodes = err.response.data.extras.result_codes.operations;
             if (opCodes.includes("op_no_trust")) {
                 errorMessage = "Recipient must add USDC trustline before claiming. Please add a USDC trustline to your account first.";
             } else if (opCodes.includes("op_no_destination")) {
                 errorMessage = "Recipient account does not exist.";
             }
-        } else if (error?.response?.data?.extras?.result_codes?.transaction === "tx_failed") {
+        } else if (err?.response?.data?.extras?.result_codes?.transaction === "tx_failed") {
             errorMessage = "Transaction failed on the Stellar network.";
         }
 
