@@ -40,7 +40,7 @@ describe("Claimable Balances Route Handlers", () => {
     it("Test case 1 - Recipient has no trustline: does balance creation succeed?", async () => {
         vi.mocked(claimableBalancesAPI.createClaimableBalance).mockResolvedValue({
             hash: "abc123success",
-        } as { hash: string });
+        } as any);
 
         const res = await createRoute(mockSenderRequest());
         const data = await res.json();
@@ -105,7 +105,7 @@ describe("Claimable Balances Route Handlers", () => {
     it("Test case 5 - Claim after trustline: does the claim succeed correctly?", async () => {
         vi.mocked(claimableBalancesAPI.claimBalance).mockResolvedValue({
             hash: "claim123success",
-        } as { hash: string });
+        } as any);
 
         const res = await claimRoute(mockClaimRequest());
         const data = await res.json();

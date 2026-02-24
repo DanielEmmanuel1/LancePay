@@ -3,18 +3,19 @@ import { prisma } from "@/lib/db";
 import { verifyAuthToken } from "@/lib/auth";
 import { verifySignature, maskSensitiveData } from "@/lib/audit";
 import { checkAuditLogAccess } from "@/lib/authorization";
-import type { AuditEvent, User } from "@prisma/client";
+// Prisma types will be inferred or are not needed here explicitly
+
 
 interface FormattedAuditEvent {
   id: string;
   eventType: string;
   actor:
-    | {
-        id: string;
-        email: string;
-        name: string | null;
-      }
-    | null;
+  | {
+    id: string;
+    email: string;
+    name: string | null;
+  }
+  | null;
   metadata: Record<string, unknown> | null;
   signature: string;
   isValid: boolean;
@@ -121,7 +122,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     });
 
     const formattedEvents: FormattedAuditEvent[] = events.map(
-      (event: AuditEvent & { actor: User | null }) => {
+      (event) => {
         const isValid = verifySignature(
           event.invoiceId,
           event.eventType,
@@ -138,12 +139,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           eventType: event.eventType,
           actor: event.actor
             ? {
-                id: event.actor.id,
-                email: shouldMaskData
-                  ? maskEmail(event.actor.email)
-                  : event.actor.email,
-                name: event.actor.name,
-              }
+              id: event.actor.id,
+              email: shouldMaskData
+                ? maskEmail(event.actor.email)
+                : event.actor.email,
+              name: event.actor.name,
+            }
             : null,
           metadata: maskSensitiveData(
             event.metadata as Record<string, unknown> | null,
