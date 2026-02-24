@@ -121,7 +121,9 @@ model Invoice {
   collaborators           InvoiceCollaborator[]
   escrowEnabled           Boolean               @default(false)
   escrowStatus            String                @default("none")
+  escrowContractId        String?               @unique
   escrowReleaseConditions String?
+
   escrowReleasedAt        DateTime?
   escrowDisputedAt        DateTime?
   escrowEvents            EscrowEvent[]
