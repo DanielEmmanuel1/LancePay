@@ -12,6 +12,7 @@
     "audit": "npm audit --audit-level=moderate"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.31",
     "@moonpay/moonpay-js": "^0.7.6",
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/client": "^6.19.2",
@@ -22,6 +23,7 @@
     "@solana-program/token": "^0.9.0",
     "@solana/kit": "^5.4.0",
     "@stellar/stellar-sdk": "^13.3.0",
+    "ai": "^6.0.97",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^11.15.0",
