@@ -582,7 +582,7 @@ export async function submitFeeBumpTransaction(
     console.info('Fee-bump transaction submitted', {
       innerTxHash: innerTx.hash().toString('hex'),
       feeBumpTxHash: result.hash,
-      feeCharged: result.fee_charged,
+      maxFeePerOperation,
     })
 
     return {

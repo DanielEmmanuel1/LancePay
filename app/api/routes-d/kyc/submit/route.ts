@@ -22,20 +22,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Derive stellarAddress from the authenticated user's wallet — never trust headers
+    // Derive Stellar address from the authenticated user's wallet; never trust headers.
     const wallet = await prisma.wallet.findUnique({
       where: { userId: auth.user.id },
-      select: { stellarAddress: true },
+      select: { address: true },
     });
 
-    if (!wallet?.stellarAddress) {
+    if (!wallet?.address) {
       return NextResponse.json(
         { error: "No Stellar wallet found for this account" },
         { status: 404 }
       );
     }
 
-    const stellarAddress = wallet.stellarAddress;
+    const stellarAddress = wallet.address;
     const formData = await req.formData();
 
     // Extract form data

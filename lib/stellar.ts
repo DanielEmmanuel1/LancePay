@@ -8,7 +8,9 @@ import {
   StrKey,
   Transaction,
   Memo,
-  AuthFlag as StellarAuthFlag,
+  AuthRequiredFlag,
+  AuthRevocableFlag,
+  AuthClawbackEnabledFlag,
   BASE_FEE,
 } from "@stellar/stellar-sdk";
 
@@ -462,12 +464,21 @@ export async function configureBadgeIssuer(
       fee: (await server.fetchBaseFee()).toString(),
       networkPassphrase: STELLAR_NETWORK,
     })
+      // stellar-sdk v13 types `setFlags` as a single flag literal; set required
+      // issuer bits with discrete operations to preserve behavior and type safety.
       .addOperation(
         Operation.setOptions({
-          setFlags:
-            StellarAuthFlag.AuthRequired |
-            StellarAuthFlag.AuthRevocable |
-            StellarAuthFlag.AuthClawbackEnabled,
+          setFlags: AuthRequiredFlag,
+        }),
+      )
+      .addOperation(
+        Operation.setOptions({
+          setFlags: AuthRevocableFlag,
+        }),
+      )
+      .addOperation(
+        Operation.setOptions({
+          setFlags: AuthClawbackEnabledFlag,
         }),
       )
       .setTimeout(30)
@@ -717,11 +728,11 @@ export async function* streamFullTransactionHistory(
           type: r.type,
           created_at: r.created_at,
           transaction_successful: r.transaction_successful,
-          from: r.from,
-          to: r.to,
-          amount: r.amount,
-          asset_code: r.asset_code,
-          asset_type: r.asset_type,
+          from: (r as any).from ?? '',
+          to: (r as any).to ?? '',
+          amount: (r as any).amount,
+          asset_code: (r as any).asset_code,
+          asset_type: (r as any).asset_type,
         } as StellarTransaction;
       }
 
