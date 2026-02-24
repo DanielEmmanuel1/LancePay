@@ -76,7 +76,7 @@ model BankAccount {
   user          User           @relation(fields: [userId], references: [id])
   withdrawals   Transaction[]  @relation("WithdrawalBank")
   autoSwapRules AutoSwapRule[]
-}
+}~
 
 model VirtualAccount {
   id            String   @id @default(uuid())
