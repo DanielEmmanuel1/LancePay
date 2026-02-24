@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import {
+import { logger } from '@/lib/logger'
   getAuthContext,
   CreateSavingsGoalSchema,
   formatSavingsGoal,
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Error fetching savings goals:', error)
+    logger.error('Error fetching savings goals:', error)
     return NextResponse.json({ error: 'Failed to fetch savings goals' }, { status: 500 })
   }
 }
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    console.error('Error creating savings goal:', error)
+    logger.error('Error creating savings goal:', error)
     return NextResponse.json({ error: 'Failed to create savings goal' }, { status: 500 })
   }
 }

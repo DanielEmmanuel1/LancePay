@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { verifyAuthToken } from "@/lib/auth";
 import {
+import { logger } from '@/lib/logger'
   addCollaborator,
   removeCollaborator,
   updateCollaboratorShare,
@@ -117,7 +118,7 @@ export async function GET(request: NextRequest) {
       })),
     });
   } catch (error) {
-    console.error("Get collaborators error:", error);
+    logger.error("Get collaborators error:", error);
     return NextResponse.json(
       { error: "Failed to get collaborators" },
       { status: 500 },
@@ -186,7 +187,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Add collaborator error:", error);
+    logger.error("Add collaborator error:", error);
     const message =
       error instanceof Error ? error.message : "Failed to add collaborator";
     return NextResponse.json({ error: message }, { status: 400 });
@@ -234,7 +235,7 @@ export async function PATCH(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Update collaborator error:", error);
+    logger.error("Update collaborator error:", error);
     const message =
       error instanceof Error ? error.message : "Failed to update collaborator";
     return NextResponse.json({ error: message }, { status: 400 });
@@ -297,7 +298,7 @@ export async function DELETE(request: NextRequest) {
       message: "Collaborator removed",
     });
   } catch (error) {
-    console.error("Remove collaborator error:", error);
+    logger.error("Remove collaborator error:", error);
     const message =
       error instanceof Error ? error.message : "Failed to remove collaborator";
     return NextResponse.json({ error: message }, { status: 400 });

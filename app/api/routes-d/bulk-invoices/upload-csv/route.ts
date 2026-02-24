@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
+import { logger } from '@/lib/logger'
   MAX_BULK_INVOICES,
   enforceBulkRateLimit,
   getOrCreateUserFromRequest,
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response, { status: 200 })
   } catch (error) {
-    console.error('Bulk invoices upload-csv error:', error)
+    logger.error('Bulk invoices upload-csv error:', error)
     return NextResponse.json({ error: 'Failed to upload CSV' }, { status: 500 })
   }
 }

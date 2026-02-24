@@ -75,6 +75,7 @@ import { updateUserTrustScore } from "@/lib/reputation";
 import { logAuditEvent, extractRequestMetadata } from "@/lib/audit";
 import { processSavingsOnPayment } from "@/lib/savings";
 import { processWaterfallPayments } from "@/lib/waterfall";
+import { logger } from '@/lib/logger'
 
 export async function GET(
   request: NextRequest,
@@ -98,7 +99,7 @@ export async function GET(
     null,
     extractRequestMetadata(request.headers),
   ).catch((error) => {
-    console.error("Failed to log invoice.viewed audit event:", error);
+    logger.error("Failed to log invoice.viewed audit event:", error);
   });
 
   // Dispatch webhook for invoice.viewed event (async, non-blocking)
@@ -110,7 +111,7 @@ export async function GET(
     clientEmail: invoice.clientEmail,
     viewedAt: new Date().toISOString(),
   }).catch((error) => {
-    console.error("Failed to dispatch invoice.viewed webhook:", error);
+    logger.error("Failed to dispatch invoice.viewed webhook:", error);
   });
 
   return NextResponse.json({
@@ -208,7 +209,7 @@ export async function POST(
     Number(updatedInvoice.amount),
   );
   if (waterfallResult.processed) {
-    console.log(
+    logger.info(
       `Waterfall payments processed: ${waterfallResult.distributions.length} distributions, lead share: ${waterfallResult.leadShare}`,
     );
   }
@@ -237,7 +238,7 @@ export async function POST(
   try {
     await updateUserTrustScore(updatedInvoice.userId);
   } catch (error) {
-    console.error("Failed to update trust score after payment:", error);
+    logger.error("Failed to update trust score after payment:", error);
     // Don't fail the payment if score update fails
   }
 

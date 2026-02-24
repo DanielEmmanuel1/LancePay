@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { 
+import { logger } from '@/lib/logger'
   getAuthContext, 
   AutoSwapRuleSchema, 
   AutoSwapRuleStatusSchema,
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
       rule: formatAutoSwapRule(rule),
     })
   } catch (error) {
-    console.error('Error fetching auto-swap rule:', error)
+    logger.error('Error fetching auto-swap rule:', error)
     return NextResponse.json(
       { error: 'Failed to fetch auto-swap rule' },
       { status: 500 }
@@ -165,7 +166,7 @@ export async function POST(request: NextRequest) {
       rule: formatAutoSwapRule(rule),
     }, { status: 201 })
   } catch (error) {
-    console.error('Error saving auto-swap rule:', error)
+    logger.error('Error saving auto-swap rule:', error)
     return NextResponse.json(
       { error: 'Failed to save auto-swap rule' },
       { status: 500 }
@@ -244,7 +245,7 @@ export async function PATCH(request: NextRequest) {
       rule: formatAutoSwapRule(rule),
     })
   } catch (error) {
-    console.error('Error updating auto-swap rule status:', error)
+    logger.error('Error updating auto-swap rule status:', error)
     return NextResponse.json(
       { error: 'Failed to update auto-swap rule status' },
       { status: 500 }
@@ -292,7 +293,7 @@ export async function DELETE(request: NextRequest) {
       message: 'Auto-swap rule deleted successfully',
     })
   } catch (error) {
-    console.error('Error deleting auto-swap rule:', error)
+    logger.error('Error deleting auto-swap rule:', error)
     return NextResponse.json(
       { error: 'Failed to delete auto-swap rule' },
       { status: 500 }

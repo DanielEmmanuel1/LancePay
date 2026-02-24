@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { EscrowReleaseSchema, getAuthContext, releaseEscrowFunds } from '@/app/api/routes-d/escrow/_shared'
 import { sendEscrowReleasedEmail } from '@/lib/email'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
       try {
         await releaseEscrowFunds((invoice as any).escrowContractId)
       } catch (err) {
-        console.error('On-chain escrow release failed:', err)
+        logger.error('On-chain escrow release failed:', err)
         return NextResponse.json({ error: 'Failed to release escrow on-chain. Please ensure you have sufficient XLM for gas.' }, { status: 500 })
       }
     }
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error && error.message === 'ESCROW_RELEASE_CONFLICT') {
       return NextResponse.json({ error: 'Escrow status changed. Please refresh and retry.' }, { status: 409 })
     }
-    console.error('Escrow release error:', error)
+    logger.error('Escrow release error:', error)
     return NextResponse.json({ error: 'Failed to release escrow' }, { status: 500 })
   }
 }

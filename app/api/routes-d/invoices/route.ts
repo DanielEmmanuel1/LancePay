@@ -5,6 +5,7 @@ import { verifyAuthToken } from '@/lib/auth'
 import { createInvoiceSchema } from '@/lib/validations'
 import { generateInvoiceNumber } from '@/lib/utils'
 import { logAuditEvent, extractRequestMetadata } from '@/lib/audit'
+import { logger } from '@/lib/logger'
 
 async function getOrCreateUser(claims: AuthTokenClaims, referralCode?: string) {
   let user = await prisma.user.findUnique({ where: { privyId: claims.userId } })
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ invoices })
   } catch (error) {
-    console.error('Invoices GET error:', error)
+    logger.error('Invoices GET error:', error)
     return NextResponse.json({ error: 'Failed to get invoices' }, { status: 500 })
   }
 }
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(invoice, { status: 201 })
   } catch (error) {
-    console.error('Invoices POST error:', error)
+    logger.error('Invoices POST error:', error)
     return NextResponse.json({ error: 'Failed to create invoice' }, { status: 500 })
   }
 }

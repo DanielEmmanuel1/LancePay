@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { submitKYCData } from "@/lib/sep12-kyc";
 import { getAuthContext } from "@/app/api/routes-d/auto-swap/_shared";
 import { prisma } from "@/lib/db";
+import { logger } from '@/lib/logger'
 
 /**
  * POST /api/kyc/submit
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
       data: result,
     });
   } catch (error: any) {
-    console.error("Error submitting KYC data:", error);
+    logger.error("Error submitting KYC data:", error);
     return NextResponse.json(
       { error: error.message || "Failed to submit KYC data" },
       { status: 500 }

@@ -10,6 +10,7 @@ import {
 import { TaxReportPDF, type TaxAnnualReport } from '@/lib/tax-pdf'
 import { pdf } from '@react-pdf/renderer'
 import React from 'react'
+import { logger } from '@/lib/logger'
 
 function csvEscape(value: string) {
   if (value.includes(',') || value.includes('"') || value.includes('\n')) {
@@ -140,7 +141,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Tax export error:', error)
+    logger.error('Tax export error:', error)
     return NextResponse.json({ error: 'Failed to export tax report' }, { status: 500 })
   }
 }

@@ -3,6 +3,7 @@ import type { AuthTokenClaims } from "@privy-io/server-auth";
 import { verifyAuthToken } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import {
+import { logger } from '@/lib/logger'
   ensureReferralCode,
   getReferralStats,
   getRecentReferralHistory,
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
       recentHistory,
     });
   } catch (error) {
-    console.error("Referral stats error:", error);
+    logger.error("Referral stats error:", error);
     return NextResponse.json(
       { error: "Failed to fetch referral stats" },
       { status: 500 },
