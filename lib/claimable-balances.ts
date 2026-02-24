@@ -8,22 +8,15 @@ import {
 } from "@stellar/stellar-sdk";
 import { server, USDC_ASSET, STELLAR_NETWORK } from "./stellar";
 
-/**
- * Check if an account has a USDC trustline
- */
-export async function hasUSDCTrustline(publicKey: string): Promise<boolean> {
+export async function accountExists(publicKey: string): Promise<boolean> {
   try {
-    const account = await server.loadAccount(publicKey);
-    return account.balances.some(
-      (balance) =>
-        balance.asset_type !== "native" &&
-        'asset_code' in balance &&
-        balance.asset_code === USDC_ASSET.code &&
-        'asset_issuer' in balance &&
-        balance.asset_issuer === USDC_ASSET.issuer
-    );
-  } catch (error) {
-    return false;
+    await server.loadAccount(publicKey);
+    return true;
+  } catch (error: any) {
+    if (error?.response?.status === 404) {
+      return false;
+    }
+    throw error; // Gracefully handle network errors by failing clearly instead of hiding them
   }
 }
 
@@ -35,6 +28,15 @@ export async function createClaimableBalance(
   recipientPublicKey: string,
   amount: string
 ) {
+  const recipientExists = await accountExists(recipientPublicKey);
+
+  if (!recipientExists) {
+    throw new Error(
+      "Recipient account does not exist on Stellar network. " +
+      "They must create an account first (fund with XLM)."
+    );
+  }
+
   const senderAccount = await server.loadAccount(senderKeypair.publicKey());
 
   const claimant = new Claimant(
