@@ -1,3 +1,72 @@
+/**
+ * @swagger
+ * /api/pay/{invoiceId}:
+ *   get:
+ *     summary: Get invoice details for payment
+ *     description: Retrieves public invoice data for a payer to review before submitting payment. Also fires an invoice.viewed webhook.
+ *     tags:
+ *       - Payments
+ *     parameters:
+ *       - in: path
+ *         name: invoiceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The invoice number (public-facing ID)
+ *     responses:
+ *       200:
+ *         description: Invoice details returned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 invoiceNumber:
+ *                   type: string
+ *                 freelancerName:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 amount:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                   enum: [pending, paid, cancelled]
+ *                 dueDate:
+ *                   type: string
+ *                   format: date-time
+ *                 walletAddress:
+ *                   type: string
+ *       404:
+ *         description: Invoice not found
+ *   post:
+ *     summary: Mark invoice as paid
+ *     description: Confirms payment for an invoice. Triggers referral earnings, savings auto-deduction, waterfall distributions, auto-swap, and trust score update.
+ *     tags:
+ *       - Payments
+ *     parameters:
+ *       - in: path
+ *         name: invoiceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The invoice number
+ *     responses:
+ *       200:
+ *         description: Invoice marked as paid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *       400:
+ *         description: Invalid or already-paid invoice
+ *       500:
+ *         description: Internal server error
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { createReferralEarning } from "@/lib/referral";
