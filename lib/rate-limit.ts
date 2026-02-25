@@ -83,6 +83,72 @@ function cleanupExpiredEntries(now: number) {
   }
 }
 
+/**
+ * Route-level rate limiter for use inside API handlers.
+ * Supports composite keys (e.g. IP + userId) and manual reset.
+ * Shares the same global store as middleware-level rate limiting.
+ */
+export class RouteRateLimiter {
+  private maxRequests: number
+  private windowMs: number
+  private policyId: string
+
+  constructor(opts: { id: string; maxRequests: number; windowMs: number }) {
+    this.policyId = opts.id
+    this.maxRequests = opts.maxRequests
+    this.windowMs = opts.windowMs
+  }
+
+  check(identifier: string): RequestRateLimitResult {
+    const now = Date.now()
+    cleanupExpiredEntries(now)
+
+    const key = `${this.policyId}:${identifier}`
+    const existing = STORE.get(key)
+
+    if (!existing || now >= existing.resetAt) {
+      const resetAt = now + this.windowMs
+      STORE.set(key, { count: 1, resetAt })
+      return {
+        policyId: this.policyId,
+        allowed: true,
+        limit: this.maxRequests,
+        remaining: this.maxRequests - 1,
+        resetAt,
+      }
+    }
+
+    if (existing.count >= this.maxRequests) {
+      return {
+        policyId: this.policyId,
+        allowed: false,
+        limit: this.maxRequests,
+        remaining: 0,
+        resetAt: existing.resetAt,
+      }
+    }
+
+    existing.count += 1
+    STORE.set(key, existing)
+
+    return {
+      policyId: this.policyId,
+      allowed: true,
+      limit: this.maxRequests,
+      remaining: Math.max(this.maxRequests - existing.count, 0),
+      resetAt: existing.resetAt,
+    }
+  }
+
+  reset(identifier: string): void {
+    STORE.delete(`${this.policyId}:${identifier}`)
+  }
+}
+
+export function getClientIp(request: NextRequest): string {
+  return getClientIdentifier(request)
+}
+
 export function checkRequestRateLimit(request: NextRequest): RequestRateLimitResult | null {
   const policy = findPolicy(request.nextUrl.pathname, request.method)
   if (!policy) return null
