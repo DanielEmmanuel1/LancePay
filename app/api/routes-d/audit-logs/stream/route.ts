@@ -6,6 +6,7 @@ import { checkAuditLogAccess } from "@/lib/authorization";
 // Prisma types will be inferred or are not needed here explicitly
 
 
+
 interface FormattedAuditEvent {
   id: string;
   eventType: string;
