@@ -6,12 +6,13 @@
     "dev": "cross-env NEXT_DISABLE_TURBOPACK=1 next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "npx eslint .",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --ignore-pattern '.next/**'",
     "test": "npx vitest run",
     "test:watch": "npx vitest",
     "audit": "npm audit --audit-level=moderate"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.31",
     "@moonpay/moonpay-js": "^0.7.6",
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/client": "^6.19.2",
@@ -25,6 +26,7 @@
     "@tanstack/query-core": "5.90.20",
     "@tanstack/react-query": "5.90.21",
     "@upstash/qstash": "^2.9.0",
+    "ai": "^6.0.97",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^11.15.0",

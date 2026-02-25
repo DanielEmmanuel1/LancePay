@@ -11,6 +11,7 @@ model User {
   id               String   @id @default(uuid())
   privyId          String   @unique
   email            String   @unique
+  role             String   @default("freelancer")
   name             String?
   phone            String?
   referralCode     String?  @unique
@@ -26,6 +27,8 @@ model User {
   wallet                 Wallet?
   bankAccounts           BankAccount[]
   invoices               Invoice[]
+  clientInvoices         Invoice[]             @relation("ClientInvoices")
+  paymentMethods         PaymentMethod[]
   transactions           Transaction[]
   reminderSettings       ReminderSettings?
   autoSwapRule           AutoSwapRule?
@@ -51,6 +54,7 @@ model User {
   withdrawalTransactions WithdrawalTransaction[]
   anchorSessions         AnchorSession[]
   expenses              Expense[]
+  subscriptions         Subscription[]
 }
 
 model Wallet {
@@ -115,6 +119,8 @@ model Invoice {
   updatedAt     DateTime  @updatedAt
 
   user                    User                  @relation(fields: [userId], references: [id])
+  clientId                String?
+  client                  User?                 @relation("ClientInvoices", fields: [clientId], references: [id])
   transaction             Transaction?
   paymentReminders        PaymentReminder[]
   dispute                 Dispute?
@@ -138,6 +144,33 @@ model Invoice {
   cancelledAt             DateTime?
   cancellationReason      String?
   doNotAutoCancel         Boolean               @default(false)
+
+  subscriptionId          String?
+  subscription            Subscription?         @relation(fields: [subscriptionId], references: [id])
+}
+
+model Subscription {
+  id                 String   @id @default(uuid())
+  userId             String
+  clientEmail        String
+  clientName         String?
+  description        String
+  amount             Decimal  @db.Decimal(10, 2)
+  currency           String   @default("USD")
+  frequency          String   @default("monthly")
+  interval           Int      @default(1)
+  status             String   @default("active")
+  nextGenerationDate DateTime
+  lastGeneratedAt    DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id])
+  invoices Invoice[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([nextGenerationDate])
 }
 
 model InvoiceMessage {
@@ -748,4 +781,19 @@ model PayoutItem {
 
   @@index([batchId])
   @@index([status])
+}
+
+model PaymentMethod {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // e.g., "stellar_wallet", "bank_account"
+  name      String?  // e.g., "Main Ledger", "Personal Savings"
+  value     String   // e.g., Stellar address
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

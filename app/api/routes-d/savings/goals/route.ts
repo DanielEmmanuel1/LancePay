@@ -87,7 +87,10 @@ export async function POST(request: NextRequest) {
       { success: true, message: 'Savings goal created', goal: formatSavingsGoal(goal) },
       { status: 201 }
     )
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message?.includes('Total active savings cannot exceed 50%')) {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
     console.error('Error creating savings goal:', error)
     return NextResponse.json({ error: 'Failed to create savings goal' }, { status: 500 })
   }
