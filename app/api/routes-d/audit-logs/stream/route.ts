@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { verifyAuthToken } from "@/lib/auth";
 import { verifySignature, maskSensitiveData } from "@/lib/audit";
 import { checkAuditLogAccess } from "@/lib/authorization";
+// Prisma types will be inferred or are not needed here explicitly
 
 
 

@@ -19,7 +19,7 @@ describe("Claimable Balances Route Handlers", () => {
                 amount: "50",
             }),
             headers: new Headers({
-                "x-stellar-secret": "SA2N4YMM6E2MMZ332YQZYJ33BBY5ZMQZMM2MB33ZMQZY5ZMQZY5ZMQZY",
+                "x-stellar-secret": "SBFES63435GQ64ZKPIGI332O2KIZ2YMXGTG4VRRC6GNXE2WUCMF3GXU7",
             }),
         } as unknown as NextRequest;
     };
@@ -28,7 +28,7 @@ describe("Claimable Balances Route Handlers", () => {
         return {
             json: vi.fn().mockResolvedValue({ balanceId: "12345" }),
             headers: new Headers({
-                "x-stellar-secret": "SA...",
+                "x-stellar-secret": "SBFES63435GQ64ZKPIGI332O2KIZ2YMXGTG4VRRC6GNXE2WUCMF3GXU7",
             }),
         } as unknown as NextRequest;
     };

@@ -9,6 +9,7 @@ import { TrustlineManager } from '@/components/dashboard/trustline-manager'
 import { QuickActions } from '@/components/dashboard/quick-actions'
 import { TransactionList } from '@/components/dashboard/transaction-list'
 import { TaxVaultCard } from '@/components/dashboard/tax-vault-card'
+import { AssetMetadata } from '@/lib/assets'
 
 interface Transaction {
   id: string;
@@ -25,6 +26,14 @@ interface Transaction {
   bankAccount?: { bankName: string; accountNumber: string } | null;
 }
 
+interface Asset {
+  code: string;
+  issuer?: string;
+  balance: string;
+  value: number;
+  metadata: AssetMetadata;
+}
+
 interface Portfolio {
   available?: { display: string }
   localEquivalent?: { display: string; rate: number }
@@ -33,7 +42,7 @@ interface Portfolio {
   usd?: string | number
   totalValue?: number
   currency?: string
-  assets?: any[]
+  assets?: Asset[]
 }
 
 export default function DashboardPage() {
@@ -46,7 +55,8 @@ export default function DashboardPage() {
   const [taxVaultBalance, setTaxVaultBalance] = useState(0)
 
   // Claimable Balances
-  const [claimableBalances, setClaimableBalances] = useState<any[]>([])
+
+  const [claimableBalances, setClaimableBalances] = useState<{ id: string; balance_id?: string;[key: string]: unknown }[]>([])
   const [isClaiming, setIsClaiming] = useState(false)
   const [claimError, setClaimError] = useState('')
 
@@ -115,8 +125,12 @@ export default function DashboardPage() {
       // Success: Remove claimed balance and refresh
       setClaimableBalances(prev => prev.slice(1));
       fetchData();
-    } catch (err: any) {
-      setClaimError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setClaimError(err.message);
+      } else {
+        setClaimError('An unexpected error occurred');
+      }
     } finally {
       setIsClaiming(false);
     }

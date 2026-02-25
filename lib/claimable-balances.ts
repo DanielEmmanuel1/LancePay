@@ -3,8 +3,7 @@ import {
   Claimant,
   Keypair,
   TransactionBuilder,
-  BASE_FEE,
-  Account
+  BASE_FEE
 } from "@stellar/stellar-sdk";
 import { server, USDC_ASSET, STELLAR_NETWORK } from "./stellar";
 
@@ -12,11 +11,14 @@ export async function accountExists(publicKey: string): Promise<boolean> {
   try {
     await server.loadAccount(publicKey);
     return true;
-  } catch (error: any) {
-    if (error?.response?.status === 404) {
-      return false;
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'response' in error) {
+      const resp = error.response as { status: number };
+      if (resp.status === 404) {
+        return false;
+      }
     }
-    throw error; // Gracefully handle network errors by failing clearly instead of hiding them
+    throw error;
   }
 }
 
@@ -72,7 +74,7 @@ export async function getClaimableBalances(publicKey: string) {
     .call();
 
   return response.records.filter(
-    (cb: any) =>
+    (cb: { asset: string }) =>
       cb.asset.split(":")[0] === USDC_ASSET.code &&
       cb.asset.split(":")[1] === USDC_ASSET.issuer
   );
@@ -108,7 +110,7 @@ export async function claimBalance(
  */
 export async function getTotalClaimableAmount(publicKey: string): Promise<string> {
   const balances = await getClaimableBalances(publicKey);
-  const total = balances.reduce((sum: number, cb: any) => {
+  const total = balances.reduce((sum: number, cb: { amount: string }) => {
     return sum + parseFloat(cb.amount);
   }, 0);
   return total.toFixed(7);

@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
         try {
             // Assuming there's a notification service, but if none we can just log
             console.log(`Notification: Claimable balance created for ${recipientPublicKey}`);
-        } catch (e) {
+        } catch {
             // Ignore notification failures
         }
 
@@ -36,15 +36,29 @@ export async function POST(req: NextRequest) {
             success: true,
             transactionHash: result.hash,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error creating claimable balance:", error);
+
+        const err = error as {
+            message?: string;
+            response?: {
+                data?: {
+                    extras?: {
+                        result_codes?: {
+                            operations?: string[];
+                            transaction?: string
+                        }
+                    }
+                }
+            }
+        };
 
         let errorMessage = "Failed to create claimable balance";
 
-        if (error.message && error.message.includes("Recipient account does not exist")) {
-            errorMessage = error.message;
-        } else if (error?.response?.data?.extras?.result_codes?.operations) {
-            const opCodes = error.response.data.extras.result_codes.operations;
+        if (err.message && err.message.includes("Recipient account does not exist")) {
+            errorMessage = err.message;
+        } else if (err?.response?.data?.extras?.result_codes?.operations) {
+            const opCodes = err.response.data.extras.result_codes.operations;
             if (opCodes.includes("op_underfunded")) {
                 errorMessage = "Sender has insufficient balance to create this claimable balance.";
             } else if (opCodes.includes("op_low_reserve")) {
@@ -52,7 +66,7 @@ export async function POST(req: NextRequest) {
             } else {
                 errorMessage = `Operation failed: ${opCodes.join(', ')}`;
             }
-        } else if (error?.response?.data?.extras?.result_codes?.transaction === "tx_failed") {
+        } else if (err?.response?.data?.extras?.result_codes?.transaction === "tx_failed") {
             errorMessage = "Transaction failed on the Stellar network.";
         }
 
