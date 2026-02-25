@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-
 import { checkRequestRateLimit } from '@/lib/rate-limit';
 
 function applySecurityHeaders(response: NextResponse, nonce: string) {
@@ -38,6 +36,7 @@ function applyRateLimitHeaders(response: NextResponse, params: {
 }
 
 export function middleware(request: NextRequest) {
+  // Use Web Crypto so this stays compatible with the Edge runtime.
   const nonce = crypto.randomUUID();
   const rateLimit = checkRequestRateLimit(request);
 
