@@ -1,4 +1,3 @@
-
 use soroban_sdk::{contract, contractimpl, Address, Env, String};
 
 #[contract]
@@ -26,7 +25,7 @@ impl GaslessHandler {
 
     /// Checks if the transaction is eligible for sponsorship.
     /// e.g., Is it a USDC transfer? Is the amount within limits?
-    fn validate_sponsorship(env: &Env, _tx_xdr: &String) -> bool {
+    fn validate_sponsorship(_env: &Env, _tx_xdr: &String) -> bool {
         // Mock validation logic
         // Check daily limit for user?
         // Check if op is allowed?

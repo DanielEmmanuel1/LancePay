@@ -88,7 +88,12 @@ export async function PATCH(
       // Check 50% limit when reactivating
       if (isActive && !goal.isActive) {
         const activeGoals = await prisma.savingsGoal.findMany({
-          where: { userId: user.id, isActive: true, status: 'in_progress', id: { not: id } },
+          where: {
+            userId: user.id,
+            isActive: true,
+            status: 'in_progress',
+            id: { not: id },
+          },
         })
         const currentTotal = activeGoals.reduce((sum, g) => sum + g.savingsPercentage, 0)
 
@@ -113,7 +118,10 @@ export async function PATCH(
     }
 
     return NextResponse.json({ error: 'No valid update provided' }, { status: 400 })
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message?.includes('Total active savings cannot exceed 50%')) {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
     console.error('Error updating savings goal:', error)
     return NextResponse.json({ error: 'Failed to update savings goal' }, { status: 500 })
   }

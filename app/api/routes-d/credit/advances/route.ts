@@ -53,6 +53,10 @@ export async function GET(request: NextRequest) {
         ngnAmount: Number(adv.advancedAmountNGN),
         feeAmount: Number(adv.feeAmountUSDC),
         totalRepayment: Number(adv.totalRepaymentUSDC),
+        outstandingRepayment:
+          adv.status === 'repaid' || adv.status === 'failed'
+            ? 0
+            : Number(adv.totalRepaymentUSDC),
         status: adv.status,
         disbursedAt: adv.disbursedAt?.toISOString(),
         repaidAt: adv.repaidAt?.toISOString(),
