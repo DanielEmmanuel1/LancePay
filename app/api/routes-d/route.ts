@@ -43,7 +43,9 @@ export async function GET() {
       merchants: {
         onboarding: '/api/routes-d/merchants/onboarding',
       },
+      compliance: {
+        kyb: '/api/routes-d/compliance/kyb?businessId={id}',
+      },
     }
   })
 }
-
