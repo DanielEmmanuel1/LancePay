@@ -1,7 +1,20 @@
-/**
- * Simple logging utility for error reporting.
- * In a production environment, this should be integrated with services like Sentry, LogRocket, or Datadog.
- */
+import pino from 'pino';
+
+export const logger = pino({
+    level: process.env.LOG_LEVEL || 'info',
+    transport: process.env.NODE_ENV === 'development' ? {
+        target: 'pino-pretty',
+        options: {
+            colorize: true,
+        },
+    } : undefined,
+    base: {
+        env: process.env.NODE_ENV,
+        revision: process.env.VERCEL_GIT_COMMIT_SHA,
+    },
+});
+
+
 
 export const logError = (error: Error, errorInfo?: { [key: string]: any }) => {
   // Always log to console in development
