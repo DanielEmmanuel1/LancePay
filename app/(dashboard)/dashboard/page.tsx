@@ -55,6 +55,8 @@ export default function DashboardPage() {
   const [taxVaultBalance, setTaxVaultBalance] = useState(0)
 
   // Claimable Balances
+
+
   const [claimableBalances, setClaimableBalances] = useState<{ id: string; balance_id?: string;[key: string]: unknown }[]>([])
   const [isClaiming, setIsClaiming] = useState(false)
   const [claimError, setClaimError] = useState('')
