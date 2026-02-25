@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { submitKYCData } from "@/lib/sep12-kyc";
 import { getAuthContext } from "@/app/api/routes-d/auto-swap/_shared";
 import { prisma } from "@/lib/db";
+import {
+  buildRateLimitResponse,
+  getClientIp,
+  isKycRateLimitBypassed,
+  kycSubmitDaily,
+  kycSubmitGlobal,
+  kycSubmitHourly,
+} from "@/lib/rate-limit";
 
 const MAX_FILE_COUNT = 6;
 const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
@@ -164,6 +172,34 @@ export async function POST(req: NextRequest) {
         { error: "SEP-10 auth token required" },
         { status: 400 }
       );
+    }
+
+    if (!isKycRateLimitBypassed(auth.user.id)) {
+      const globalCheck = kycSubmitGlobal.check("global");
+      if (!globalCheck.allowed) {
+        console.warn("[rate-limit] KYC submit global limit exceeded", {
+          ip: getClientIp(req),
+        });
+        return buildRateLimitResponse(globalCheck);
+      }
+
+      const hourlyCheck = kycSubmitHourly.check(auth.user.id);
+      if (!hourlyCheck.allowed) {
+        console.warn("[rate-limit] KYC submit hourly limit exceeded", {
+          userId: auth.user.id,
+          ip: getClientIp(req),
+        });
+        return buildRateLimitResponse(hourlyCheck);
+      }
+
+      const dailyCheck = kycSubmitDaily.check(auth.user.id);
+      if (!dailyCheck.allowed) {
+        console.warn("[rate-limit] KYC submit daily limit exceeded", {
+          userId: auth.user.id,
+          ip: getClientIp(req),
+        });
+        return buildRateLimitResponse(dailyCheck);
+      }
     }
 
     // Derive stellarAddress from the authenticated user's wallet — never trust headers
