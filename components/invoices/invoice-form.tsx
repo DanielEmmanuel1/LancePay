@@ -10,6 +10,8 @@ export function InvoiceForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({ clientEmail: '', clientName: '', description: '', amount: '', currency: 'USD', dueDate: '' })
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [interval, setIntervalValue] = useState('1')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -18,15 +20,25 @@ export function InvoiceForm() {
 
     try {
       const token = await getAccessToken()
-      const res = await fetch('/api/routes-d/invoices', {
+      const endpoint = isRecurring ? '/api/routes-d/subscriptions' : '/api/routes-d/invoices'
+      const payload = isRecurring
+        ? { ...form, amount: parseFloat(form.amount), interval: parseInt(interval), frequency: 'monthly' }
+        : { ...form, amount: parseFloat(form.amount) }
+
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ...form, amount: parseFloat(form.amount) }),
+        body: JSON.stringify(payload),
       })
 
-      if (!res.ok) throw new Error((await res.json()).error || 'Failed to create invoice')
-      const invoice = await res.json()
-      router.push(`/dashboard/invoices/${invoice.id}`)
+      if (!res.ok) throw new Error((await res.json()).error || 'Failed to create request')
+      const result = await res.json()
+
+      if (isRecurring) {
+        router.push(`/dashboard/subscriptions`)
+      } else {
+        router.push(`/dashboard/invoices/${result.id}`)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -83,6 +95,33 @@ export function InvoiceForm() {
           <label className="block text-sm font-medium text-brand-black mb-2">Due Date</label>
           <input type="date" name="dueDate" value={form.dueDate} onChange={handleChange} className="w-full px-4 py-3 rounded-lg border border-brand-border focus:border-brand-black outline-none" />
         </div>
+      </div>
+
+      <div className="pt-4 border-t border-brand-border">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={isRecurring}
+            onChange={(e) => setIsRecurring(e.target.checked)}
+            className="w-4 h-4 rounded border-brand-border text-brand-black focus:ring-brand-black"
+          />
+          <span className="text-sm font-medium text-brand-black">Recurring billing (automatic monthly generation)</span>
+        </label>
+
+        {isRecurring && (
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg flex items-center gap-3">
+            <span className="text-sm text-brand-gray">Repeat every</span>
+            <input
+              type="number"
+              value={interval}
+              onChange={(e) => setIntervalValue(e.target.value)}
+              min="1"
+              max="12"
+              className="w-16 px-2 py-2 rounded-lg border border-brand-border outline-none focus:border-brand-black bg-white"
+            />
+            <span className="text-sm text-brand-gray">month(s)</span>
+          </div>
+        )}
       </div>
 
       <div className="flex gap-4">
