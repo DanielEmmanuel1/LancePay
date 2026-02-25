@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         const user = await getAuthenticatedUser(request)
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-        const paymentMethods = await (prisma.paymentMethod as any).findMany({
+        const paymentMethods = await (prisma as any).paymentMethod.findMany({
             where: { userId: user.id },
             orderBy: { createdAt: 'desc' }
         })
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         const parsed = paymentMethodSchema.safeParse(body)
         if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
 
-        const paymentMethod = await (prisma.paymentMethod as any).create({
+        const paymentMethod = await (prisma as any).paymentMethod.create({
             data: {
                 userId: user.id,
                 ...parsed.data

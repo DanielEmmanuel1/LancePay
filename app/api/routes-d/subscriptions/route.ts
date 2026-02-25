@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
         const user = await getAuthenticatedUser(request)
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-        const subscriptions = await prisma.subscription.findMany({
+        const subscriptions = await (prisma as any).subscription.findMany({
             where: { userId: user.id },
             orderBy: { createdAt: 'desc' },
         })
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
         const start = startDate ? new Date(startDate) : new Date()
 
-        const subscription = await prisma.subscription.create({
+        const subscription = await (prisma as any).subscription.create({
             data: {
                 userId: user.id,
                 clientEmail,

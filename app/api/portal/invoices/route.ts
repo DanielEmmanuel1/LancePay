@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
         // Fetch invoices where user is the client
-        const invoices = await (prisma.invoice as any).findMany({
+        const invoices = await (prisma as any).invoice.findMany({
             where: {
                 OR: [
                     { clientId: user.id },

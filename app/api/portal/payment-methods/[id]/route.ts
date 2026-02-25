@@ -14,14 +14,15 @@ async function getAuthenticatedUser(request: NextRequest) {
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const user = await getAuthenticatedUser(request)
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-        await (prisma.paymentMethod as any).delete({
-            where: { id: params.id, userId: user.id }
+        await (prisma as any).paymentMethod.delete({
+            where: { id, userId: user.id }
         })
 
         return NextResponse.json({ success: true })

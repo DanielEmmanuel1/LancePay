@@ -15,7 +15,7 @@ export async function GET(request: Request) {
         const now = new Date()
 
         // Find active subscriptions due for invoice generation
-        const dueSubscriptions = await prisma.subscription.findMany({
+        const dueSubscriptions = await (prisma as any).subscription.findMany({
             where: {
                 status: 'active',
                 nextGenerationDate: {
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
                 const paymentLink = `${process.env.NEXT_PUBLIC_APP_URL}/pay/${invoiceNumber}`
 
                 // Create the invoice
-                const invoice = await prisma.invoice.create({
+                const invoice = await (prisma as any).invoice.create({
                     data: {
                         userId: sub.userId,
                         subscriptionId: sub.id,
@@ -59,7 +59,7 @@ export async function GET(request: Request) {
                     nextDate.setDate(nextDate.getDate() + (sub.interval * 7))
                 }
 
-                await prisma.subscription.update({
+                await (prisma as any).subscription.update({
                     where: { id: sub.id },
                     data: {
                         nextGenerationDate: nextDate,

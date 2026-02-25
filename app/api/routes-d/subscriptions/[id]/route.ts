@@ -14,9 +14,10 @@ async function getAuthenticatedUser(request: NextRequest) {
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const user = await getAuthenticatedUser(request)
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -27,8 +28,8 @@ export async function PATCH(
             return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
         }
 
-        const subscription = await prisma.subscription.update({
-            where: { id: params.id, userId: user.id },
+        const subscription = await (prisma as any).subscription.update({
+            where: { id, userId: user.id },
             data: { status },
         })
 
@@ -41,15 +42,16 @@ export async function PATCH(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const user = await getAuthenticatedUser(request)
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
         // We do a soft cancel instead of hard delete to keep records
-        await prisma.subscription.update({
-            where: { id: params.id, userId: user.id },
+        await (prisma as any).subscription.update({
+            where: { id, userId: user.id },
             data: { status: 'cancelled' },
         })
 

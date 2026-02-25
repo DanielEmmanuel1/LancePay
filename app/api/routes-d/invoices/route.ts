@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       select: { id: true }
     })
 
-    const invoice = await (prisma.invoice as any).create({
+    const invoice = await (prisma as any).invoice.create({
       data: {
         userId: user.id,
         invoiceNumber,
