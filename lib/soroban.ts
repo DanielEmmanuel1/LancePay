@@ -6,7 +6,7 @@
  * - MultisigGovernance: Manage contract governance with multi-signature requirements
  */
 
-import { Address } from '@stellar/js-stellar-sdk';
+import { Address } from '@stellar/stellar-sdk';
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES & INTERFACES
@@ -307,7 +307,7 @@ export class MultisigGovernance {
    * );
    */
   async proposeSensitiveTransaction(proposer: Address, amount: bigint): Promise<PendingTransaction> {
-    if (!proposer || amount <= 0n) {
+    if (!proposer || amount <= BigInt(0)) {
       throw new Error('Invalid proposer or amount');
     }
 
@@ -348,7 +348,7 @@ export class MultisigGovernance {
    * );
    */
   async executeWithSecondSignature(coSigner: Address, txHash: bigint): Promise<boolean> {
-    if (!coSigner || txHash <= 0n) {
+    if (!coSigner || txHash <= BigInt(0)) {
       throw new Error('Invalid co-signer or transaction hash');
     }
 

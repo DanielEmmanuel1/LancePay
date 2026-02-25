@@ -135,6 +135,9 @@ model Invoice {
   decryptionSalt          String?
   messages                InvoiceMessage[]
   manualPayments          ManualPayment[]
+  cancelledAt             DateTime?
+  cancellationReason      String?
+  doNotAutoCancel         Boolean               @default(false)
 }
 
 model InvoiceMessage {
