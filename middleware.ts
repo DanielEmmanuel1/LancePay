@@ -36,6 +36,7 @@ function applyRateLimitHeaders(response: NextResponse, params: {
 }
 
 export function middleware(request: NextRequest) {
+
   const nonce = crypto.randomUUID();
   const rateLimit = checkRequestRateLimit(request);
 

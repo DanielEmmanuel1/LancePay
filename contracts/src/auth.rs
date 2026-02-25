@@ -1,4 +1,3 @@
-
 use soroban_sdk::{contract, contractimpl, Address, Env, String};
 
 #[contract]
