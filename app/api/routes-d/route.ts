@@ -46,6 +46,10 @@ export async function GET() {
       compliance: {
         kyb: '/api/routes-d/compliance/kyb?businessId={id}',
       },
+      payouts: {
+        schedule: '/api/routes-d/payouts/schedule',
+        mass: '/api/routes-d/payouts/mass'
+      }
     }
   })
 }
