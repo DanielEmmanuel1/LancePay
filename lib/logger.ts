@@ -14,13 +14,7 @@ export const logger = pino({
     },
 });
 
-export const logError = (error: Error, errorInfo?: { [key: string]: any }) => {
-    logger.error({ err: error, ...errorInfo }, error.message);
-=======
-/**
- * Simple logging utility for error reporting.
- * In a production environment, this should be integrated with services like Sentry, LogRocket, or Datadog.
- */
+
 
 export const logError = (error: Error, errorInfo?: { [key: string]: any }) => {
   // Always log to console in development
