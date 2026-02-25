@@ -18,7 +18,7 @@ async function getOrCreateUser(claims: AuthTokenClaims, referralCode?: string) {
     }
 
     if (referralCode) {
-      const referrer = await prisma.user.findUnique({
+      const referrer = await (prisma.user as any).findUnique({
         where: { referralCode },
         select: { id: true }
       })
@@ -27,10 +27,10 @@ async function getOrCreateUser(claims: AuthTokenClaims, referralCode?: string) {
       }
     }
 
-    user = await prisma.user.create({ data })
+    user = await (prisma.user as any).create({ data })
   }
 
-  return user
+  return user as any
 }
 
 export async function GET(request: NextRequest) {
@@ -73,8 +73,25 @@ export async function POST(request: NextRequest) {
     const invoiceNumber = generateInvoiceNumber()
     const paymentLink = `${process.env.NEXT_PUBLIC_APP_URL}/pay/${invoiceNumber}`
 
-    const invoice = await prisma.invoice.create({
-      data: { userId: user.id, invoiceNumber, clientEmail, clientName, description, amount, currency, dueDate: dueDate ? new Date(dueDate) : null, paymentLink },
+    // Auto-link to existing client user if email matches
+    const existingClient = await prisma.user.findUnique({
+      where: { email: clientEmail },
+      select: { id: true }
+    })
+
+    const invoice = await (prisma as any).invoice.create({
+      data: {
+        userId: user.id,
+        invoiceNumber,
+        clientEmail,
+        clientName,
+        description,
+        amount,
+        currency,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        paymentLink,
+        clientId: existingClient?.id || null
+      },
     })
 
     // Log audit event

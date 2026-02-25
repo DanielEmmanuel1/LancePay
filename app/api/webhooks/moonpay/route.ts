@@ -39,24 +39,48 @@ export async function POST(request: NextRequest) {
     if (!invoice || invoice.status === "paid")
       return NextResponse.json({ received: true });
 
-    // Mark invoice as paid and create payment transaction
-    await prisma.$transaction([
-      prisma.invoice.update({
-        where: { id: invoice.id },
-        data: { status: "paid", paidAt: new Date() },
-      }),
-      prisma.transaction.create({
+    const settlementApplied = await prisma.$transaction(async (tx: any) => {
+      const now = new Date()
+
+      const updateResult = await tx.invoice.updateMany({
+        where: { id: invoice.id, status: 'pending' },
+        data: { status: 'paid', paidAt: now },
+      })
+
+      if (updateResult.count === 0) {
+        return false
+      }
+
+      await tx.transaction.create({
         data: {
           userId: invoice.userId,
-          type: "payment",
-          status: "completed",
+          type: 'payment',
+          status: 'completed',
           amount: invoice.amount,
           currency: invoice.currency,
           invoiceId: invoice.id,
-          completedAt: new Date(),
+          completedAt: now,
         },
-      }),
-    ]);
+      })
+
+      const advanceRepayment = await processAdvanceRepayment(
+        tx,
+        invoice.id,
+        Number(invoice.amount)
+      )
+
+      await processWaterfallPayments(
+        invoice.id,
+        advanceRepayment.remainingAmount,
+        tx
+      )
+
+      return true
+    })
+
+    if (!settlementApplied) {
+      return NextResponse.json({ received: true })
+    }
 
     if (invoice.user.referredById) {
       await createReferralEarning({

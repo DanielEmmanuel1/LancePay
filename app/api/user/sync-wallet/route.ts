@@ -26,10 +26,24 @@ export async function POST(request: NextRequest) {
     // If no user, create one
     if (!user) {
       const email = (claims as any).email || `${claims.userId}@privy.local`
+      const roleHint = request.headers.get('x-role-hint') || 'freelancer'
+
       user = await prisma.user.create({
-        data: { privyId: claims.userId, email },
+        data: {
+          privyId: claims.userId,
+          email,
+          role: roleHint
+        },
         include: { wallet: true }
       })
+
+      // If user is a client, link existing invoices by email
+      if (roleHint === 'client') {
+        await prisma.invoice.updateMany({
+          where: { clientEmail: email, clientId: null },
+          data: { clientId: user.id }
+        })
+      }
     }
 
     // If wallet already exists, return it

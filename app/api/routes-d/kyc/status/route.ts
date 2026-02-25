@@ -8,6 +8,13 @@ import { logger } from '@/lib/logger'
  */
 export async function GET(req: NextRequest) {
   try {
+    const clientIp = getClientIp(req);
+    const statusCheck = kycStatusLimiter.check(clientIp);
+    if (!statusCheck.allowed) {
+      console.warn("[rate-limit] KYC status limit exceeded", { ip: clientIp });
+      return buildRateLimitResponse(statusCheck);
+    }
+
     const stellarAddress = req.headers.get("x-stellar-address");
     const authToken = req.headers.get("x-sep10-token");
 

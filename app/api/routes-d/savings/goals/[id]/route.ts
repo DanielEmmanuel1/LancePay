@@ -89,7 +89,12 @@ export async function PATCH(
       // Check 50% limit when reactivating
       if (isActive && !goal.isActive) {
         const activeGoals = await prisma.savingsGoal.findMany({
-          where: { userId: user.id, isActive: true, status: 'in_progress', id: { not: id } },
+          where: {
+            userId: user.id,
+            isActive: true,
+            status: 'in_progress',
+            id: { not: id },
+          },
         })
         const currentTotal = activeGoals.reduce((sum, g) => sum + g.savingsPercentage, 0)
 
