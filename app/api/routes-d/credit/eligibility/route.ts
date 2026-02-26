@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuthToken } from '@/lib/auth'
-import {
 import { logger } from '@/lib/logger'
+import {
   calculateTrustScore,
   getTotalOutstandingAdvances,
   ELIGIBILITY_CRITERIA,

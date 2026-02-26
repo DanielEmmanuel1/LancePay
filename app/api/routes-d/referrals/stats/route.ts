@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import type { AuthTokenClaims } from "@privy-io/server-auth";
 import { verifyAuthToken } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import {
 import { logger } from '@/lib/logger'
+import {
   ensureReferralCode,
   getReferralStats,
   getRecentReferralHistory,

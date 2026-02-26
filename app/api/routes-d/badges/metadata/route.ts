@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
 import { logger } from '@/lib/logger'
+import {
   fetchBadgeMetadata,
   isBadgeMetadataLocked,
 } from "@/lib/sep68-metadata";

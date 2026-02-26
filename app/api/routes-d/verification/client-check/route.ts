@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import {
 import { logger } from '@/lib/logger'
+import {
   classifyDomain,
   getDomainFromEmail,
   MIN_PAID_INVOICES_FOR_VERIFIED,

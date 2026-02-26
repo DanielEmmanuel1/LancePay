@@ -11,8 +11,8 @@ import {
   createVirtualAccount,
   getVirtualAccountByUserId,
 } from "@/lib/virtual-accounts/service";
-import {
 import { logger } from '@/lib/logger'
+import {
   AccountExistsError,
   ProviderError,
 } from "@/lib/virtual-accounts/provider-interface";
