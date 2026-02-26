@@ -7,6 +7,7 @@ interface WaterfallResult {
   distributions: Array<{
     subContractorId: string
     email: string
+    walletAddress: string
     sharePercentage: number
     amount: number
     status: 'completed' | 'failed'
@@ -46,7 +47,8 @@ export async function validateCollaboratorPercentages(
 
 export async function processWaterfallPayments(
   invoiceId: string,
-  invoiceAmount: number
+  invoiceAmount: number,
+  source: 'payment' | 'escrow' = 'payment'
 ): Promise<WaterfallResult> {
   const collaborators = await prisma.invoiceCollaborator.findMany({
     where: { invoiceId, payoutStatus: 'pending' },
@@ -84,6 +86,7 @@ export async function processWaterfallPayments(
         data: {
           payoutStatus: 'completed',
           internalTxId,
+          paymentSource: source,
           paidAt: new Date(),
         },
       })
@@ -92,12 +95,14 @@ export async function processWaterfallPayments(
       distributions.push({
         subContractorId: collaborator.subContractorId,
         email: collaborator.subContractor.email,
+        walletAddress: collaborator.subContractor.wallet?.address || '',
         sharePercentage: Number(collaborator.sharePercentage),
         amount: shareAmount,
         status: 'completed',
         internalTxId,
       })
     } catch (error) {
+      // On failure, update payoutStatus but do not rethrow
       await prisma.invoiceCollaborator.update({
         where: { id: collaborator.id },
         data: { payoutStatus: 'failed' },
@@ -106,6 +111,7 @@ export async function processWaterfallPayments(
       distributions.push({
         subContractorId: collaborator.subContractorId,
         email: collaborator.subContractor.email,
+        walletAddress: collaborator.subContractor.wallet?.address || '',
         sharePercentage: Number(collaborator.sharePercentage),
         amount: shareAmount,
         status: 'failed',
