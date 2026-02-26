@@ -35,18 +35,31 @@ export async function GET(request: NextRequest) {
         webhookId: true,
         eventType: true,
         status: true,
-        attempts: true,
-        maxAttempts: true,
+        attemptCount: true,
+        lastAttemptAt: true,
         nextRetryAt: true,
+        lastStatusCode: true,
         lastError: true,
-        successAt: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
       take: 100,
     })
 
-    return NextResponse.json({ deliveries })
+    return NextResponse.json({
+      deliveries: deliveries.map((delivery) => ({
+        id: delivery.id,
+        webhookId: delivery.webhookId,
+        eventType: delivery.eventType,
+        status: delivery.status,
+        attempts: delivery.attemptCount,
+        lastAttemptAt: delivery.lastAttemptAt,
+        nextRetryAt: delivery.nextRetryAt,
+        lastStatusCode: delivery.lastStatusCode,
+        lastError: delivery.lastError,
+        createdAt: delivery.createdAt,
+      })),
+    })
   } catch (error) {
     console.error('Webhook deliveries GET error:', error)
     return NextResponse.json({ error: 'Failed to fetch webhook deliveries' }, { status: 500 })

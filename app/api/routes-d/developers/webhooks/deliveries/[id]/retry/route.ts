@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthContext } from '@/app/api/routes-d/disputes/_shared'
-import { processWebhookDeliveryNow, resetWebhookDeliveryForRetry } from '@/lib/webhook-queue'
+import { manualRetry } from '@/lib/webhooks'
 
 export async function POST(
   request: NextRequest,
@@ -30,15 +30,14 @@ export async function POST(
       return NextResponse.json({ error: 'Webhook delivery not found' }, { status: 404 })
     }
 
-    if (delivery.status === 'success') {
+    if (delivery.status === 'delivered') {
       return NextResponse.json(
         { error: 'Cannot retry a successful webhook delivery' },
         { status: 400 }
       )
     }
 
-    await resetWebhookDeliveryForRetry(id)
-    const result = await processWebhookDeliveryNow(id)
+    const result = await manualRetry(id)
 
     const refreshed = await prisma.webhookDelivery.findUnique({
       where: { id },
@@ -46,11 +45,11 @@ export async function POST(
         id: true,
         eventType: true,
         status: true,
-        attempts: true,
-        maxAttempts: true,
+        attemptCount: true,
+        lastAttemptAt: true,
         nextRetryAt: true,
+        lastStatusCode: true,
         lastError: true,
-        successAt: true,
       },
     })
 
