@@ -7,6 +7,7 @@ interface WaterfallResult {
   distributions: Array<{
     subContractorId: string
     email: string
+    walletAddress: string
     sharePercentage: number
     amount: number
     status: 'completed' | 'failed'
@@ -47,6 +48,7 @@ export async function validateCollaboratorPercentages(
 export async function processWaterfallPayments(
   invoiceId: string,
   invoiceAmount: number,
+  source: 'payment' | 'escrow' = 'payment',
   tx?: any
 ): Promise<WaterfallResult> {
   const db = tx ?? prisma
@@ -80,13 +82,12 @@ export async function processWaterfallPayments(
     const internalTxId = `wtf_${randomUUID()}`
 
     try {
-      // In production, this would trigger actual USDC transfer
-      // For now, we record the internal transaction
       await db.invoiceCollaborator.update({
         where: { id: collaborator.id },
         data: {
           payoutStatus: 'completed',
           internalTxId,
+          paymentSource: source,
           paidAt: new Date(),
         },
       })
@@ -95,12 +96,14 @@ export async function processWaterfallPayments(
       distributions.push({
         subContractorId: collaborator.subContractorId,
         email: collaborator.subContractor.email,
+        walletAddress: collaborator.subContractor.wallet?.address || '',
         sharePercentage: Number(collaborator.sharePercentage),
         amount: shareAmount,
         status: 'completed',
         internalTxId,
       })
     } catch (error) {
+      // On failure, update payoutStatus but do not rethrow — loop continues
       await db.invoiceCollaborator.update({
         where: { id: collaborator.id },
         data: { payoutStatus: 'failed' },
@@ -109,6 +112,7 @@ export async function processWaterfallPayments(
       distributions.push({
         subContractorId: collaborator.subContractorId,
         email: collaborator.subContractor.email,
+        walletAddress: collaborator.subContractor.wallet?.address || '',
         sharePercentage: Number(collaborator.sharePercentage),
         amount: shareAmount,
         status: 'failed',
@@ -145,7 +149,6 @@ export async function addCollaborator(
   subContractorEmail: string,
   sharePercentage: number
 ) {
-  // Find the sub-contractor by email
   const subContractor = await prisma.user.findUnique({
     where: { email: subContractorEmail },
   })
@@ -154,7 +157,6 @@ export async function addCollaborator(
     throw new Error('Sub-contractor not found with this email')
   }
 
-  // Get invoice to verify ownership
   const invoice = await prisma.invoice.findUnique({
     where: { id: invoiceId },
     include: { dispute: true },
@@ -164,17 +166,14 @@ export async function addCollaborator(
     throw new Error('Invoice not found')
   }
 
-  // Check if invoice has active dispute
   if (invoice.dispute && invoice.dispute.status === 'open') {
     throw new Error('Cannot modify collaborators while invoice has an open dispute')
   }
 
-  // Prevent adding invoice owner as collaborator
   if (subContractor.id === invoice.userId) {
     throw new Error('Cannot add invoice owner as a collaborator')
   }
 
-  // Validate percentages
   const validation = await validateCollaboratorPercentages(invoiceId, sharePercentage)
   if (!validation.valid) {
     throw new Error(validation.error)
@@ -239,7 +238,6 @@ export async function updateCollaboratorShare(
     throw new Error('Cannot update share for a collaborator who has already been paid')
   }
 
-  // Validate new percentage
   const validation = await validateCollaboratorPercentages(
     collaborator.invoiceId,
     newPercentage,
