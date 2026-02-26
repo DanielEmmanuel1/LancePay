@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthContext, UpdateSavingsGoalSchema, formatSavingsGoal } from '../../_shared'
+import { logger } from '@/lib/logger'
 
 export async function GET(
   request: NextRequest,
@@ -25,7 +26,7 @@ export async function GET(
 
     return NextResponse.json({ success: true, goal: formatSavingsGoal(goal) })
   } catch (error) {
-    console.error('Error fetching savings goal:', error)
+    logger.error({ err: error }, 'Error fetching savings goal:')
     return NextResponse.json({ error: 'Failed to fetch savings goal' }, { status: 500 })
   }
 }
@@ -118,11 +119,8 @@ export async function PATCH(
     }
 
     return NextResponse.json({ error: 'No valid update provided' }, { status: 400 })
-  } catch (error: any) {
-    if (error.message?.includes('Total active savings cannot exceed 50%')) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
-    }
-    console.error('Error updating savings goal:', error)
+  } catch (error) {
+    logger.error({ err: error }, 'Error updating savings goal:')
     return NextResponse.json({ error: 'Failed to update savings goal' }, { status: 500 })
   }
 }
@@ -159,7 +157,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true, message: 'Goal deleted successfully' })
   } catch (error) {
-    console.error('Error deleting savings goal:', error)
+    logger.error({ err: error }, 'Error deleting savings goal:')
     return NextResponse.json({ error: 'Failed to delete savings goal' }, { status: 500 })
   }
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getBusinessStatus } from '@/lib/compliance-kyb';
-import { buildRateLimitResponse, getClientIp, kybStatusLimiter } from '@/lib/rate-limit';
+import { buildRateLimitResponse, getClientIp, kycStatusLimiter } from '@/lib/rate-limit';
 
 /**
  * GET /api/routes-d/compliance/kyb
@@ -13,7 +13,7 @@ import { buildRateLimitResponse, getClientIp, kybStatusLimiter } from '@/lib/rat
 export async function GET(req: NextRequest) {
   try {
     const clientIp = getClientIp(req);
-    const statusCheck = kybStatusLimiter.check(clientIp);
+    const statusCheck = kycStatusLimiter.check(clientIp);
     if (!statusCheck.allowed) {
       console.warn('[rate-limit] KYB status limit exceeded', { ip: clientIp });
       return buildRateLimitResponse(statusCheck);
