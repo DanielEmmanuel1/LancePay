@@ -46,3 +46,63 @@ export async function DELETE(
     )
   }
 }
+
+/**
+ * PATCH /api/routes-d/notifications/webhooks/[id]
+ * Re-enable a disabled webhook
+ */
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const auth = await getAuthContext(request)
+    if ('error' in auth) {
+      return NextResponse.json({ error: auth.error }, { status: 401 })
+    }
+
+    const webhook = await prisma.userWebhook.findFirst({
+      where: { id, userId: auth.user.id },
+    })
+
+    if (!webhook) {
+      return NextResponse.json({ error: 'Webhook not found' }, { status: 404 })
+    }
+
+    const body = await request.json()
+
+    if (body.action === 'reactivate') {
+      const updated = await prisma.userWebhook.update({
+        where: { id },
+        data: {
+          status: 'ACTIVE',
+          isActive: true,
+          consecutiveFailures: 0,
+        },
+        select: {
+          id: true,
+          targetUrl: true,
+          description: true,
+          isActive: true,
+          status: true,
+          consecutiveFailures: true,
+          subscribedEvents: true,
+          lastTriggeredAt: true,
+          lastFailureAt: true,
+          createdAt: true,
+        },
+      })
+
+      return NextResponse.json({ success: true, webhook: updated })
+    }
+
+    return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+  } catch (error) {
+    console.error('Webhook PATCH error:', error)
+    return NextResponse.json(
+      { error: 'Failed to update webhook' },
+      { status: 500 }
+    )
+  }
+}
