@@ -36,7 +36,7 @@ export async function GET(
       isVerified: publicData.isVerified,
     })
   } catch (error) {
-    logger.error('Error fetching public trust score:', error)
+    logger.error({ err: error }, 'Error fetching public trust score:')
     return NextResponse.json(
       { error: 'Failed to fetch trust score' },
       { status: 500 }

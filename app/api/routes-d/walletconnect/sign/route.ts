@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       data: result,
     });
   } catch (error) {
-    logger.error("WalletConnect signing error:", error);
+    logger.error({ err: error }, "WalletConnect signing error:");
     return NextResponse.json(
       { error: "Failed to sign transaction" },
       { status: 500 }

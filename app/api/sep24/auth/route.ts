@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
       });
     }
   } catch (error) {
-    logger.error('SEP-10 auth error:', error);
+    logger.error({ err: error }, 'SEP-10 auth error:');
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Authentication failed' },
       { status: 500 }

@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response, { status: 200 })
   } catch (error) {
-    logger.error('Bulk invoices create error:', error)
+    logger.error({ err: error }, 'Bulk invoices create error:')
     return NextResponse.json({ error: 'Failed to create bulk invoices' }, { status: 500 })
   }
 }

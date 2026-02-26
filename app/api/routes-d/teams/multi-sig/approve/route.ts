@@ -213,7 +213,7 @@ export async function POST(request: NextRequest) {
       progress: { ...refreshedProgress, summary: progressSummary(refreshedProgress) },
     })
   } catch (error) {
-    logger.error('Teams multisig approve error:', error)
+    logger.error({ err: error }, 'Teams multisig approve error:')
     return NextResponse.json({ error: 'Failed to approve proposal' }, { status: 500 })
   }
 }

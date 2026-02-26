@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
       try {
         await updateUserTrustScore(dispute.invoice.userId)
       } catch (error) {
-        logger.error('Failed to update trust score after dispute resolution:', error)
+        logger.error({ err: error }, 'Failed to update trust score after dispute resolution:')
         // Don't fail the dispute resolution if score update fails
       }
     }
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    logger.error('Dispute resolve error:', error)
+    logger.error({ err: error }, 'Dispute resolve error:')
     return NextResponse.json({ error: 'Failed to resolve dispute' }, { status: 500 })
   }
 }

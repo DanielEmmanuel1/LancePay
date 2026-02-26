@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       isLocked,
     });
   } catch (error) {
-    logger.error("Error fetching badge metadata:", error);
+    logger.error({ err: error }, "Error fetching badge metadata:");
     return NextResponse.json(
       { error: "Failed to fetch metadata" },
       { status: 500 }

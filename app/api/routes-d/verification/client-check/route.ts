@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
       lastCheckedAt: now.toISOString(),
     })
   } catch (error) {
-    logger.error('Verification client-check error:', error)
+    logger.error({ err: error }, 'Verification client-check error:')
     return NextResponse.json({ error: 'Verification check failed' }, { status: 500 })
   }
 }

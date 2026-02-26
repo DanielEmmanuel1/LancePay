@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       invoices,
     })
   } catch (error) {
-    logger.error('Tax 1099 error:', error)
+    logger.error({ err: error }, 'Tax 1099 error:')
     return NextResponse.json({ error: 'Failed to generate 1099 report' }, { status: 500 })
   }
 }

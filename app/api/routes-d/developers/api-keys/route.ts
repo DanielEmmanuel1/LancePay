@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ apiKeys })
   } catch (error) {
-    logger.error('API keys GET error:', error)
+    logger.error({ err: error }, 'API keys GET error:')
     return NextResponse.json(
       { error: 'Failed to fetch API keys' },
       { status: 500 }
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    logger.error('API key creation error:', error)
+    logger.error({ err: error }, 'API key creation error:')
     return NextResponse.json(
       { error: 'Failed to create API key' },
       { status: 500 }

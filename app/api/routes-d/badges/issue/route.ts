@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
       metadata,
     });
   } catch (error: any) {
-    logger.error("Error issuing badge:", error);
+    logger.error({ err: error }, "Error issuing badge:");
     return NextResponse.json(
       { error: error.message || "Failed to issue badge" },
       { status: 500 }

@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    logger.error('Teams multisig propose error:', error)
+    logger.error({ err: error }, 'Teams multisig propose error:')
     return NextResponse.json({ error: 'Failed to create proposal' }, { status: 500 })
   }
 }

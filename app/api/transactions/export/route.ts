@@ -271,7 +271,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ error: "Invalid format" }, { status: 400 });
   } catch (error: any) {
-    logger.error("Export Error:", error);
+    logger.error({ err: error }, "Export Error:");
     const errorMessage =
       error instanceof Error
         ? error.message

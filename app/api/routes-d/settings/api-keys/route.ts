@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     } catch (error) {
-        logger.error('API key rotation POST error:', error)
+        logger.error({ err: error }, 'API key rotation POST error:')
         return NextResponse.json(
             { error: 'Failed to process API key rotation' },
             { status: 500 }

@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    logger.error('Error fetching savings goals:', error)
+    logger.error({ err: error }, 'Error fetching savings goals:')
     return NextResponse.json({ error: 'Failed to fetch savings goals' }, { status: 500 })
   }
 }
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    logger.error('Error creating savings goal:', error)
+    logger.error({ err: error }, 'Error creating savings goal:')
     return NextResponse.json({ error: 'Failed to create savings goal' }, { status: 500 })
   }
 }

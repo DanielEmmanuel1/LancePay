@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, txHash })
 
     } catch (error: any) {
-        logger.error('Add trustline error:', error)
+        logger.error({ err: error }, 'Add trustline error:')
         return NextResponse.json(
             { error: error?.message || 'Failed to add trustline' },
             { status: 500 }
@@ -108,7 +108,7 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ success: true, txHash })
 
     } catch (error: any) {
-        logger.error('Remove trustline error:', error)
+        logger.error({ err: error }, 'Remove trustline error:')
         return NextResponse.json(
             { error: error?.message || 'Failed to remove trustline' },
             { status: 500 }

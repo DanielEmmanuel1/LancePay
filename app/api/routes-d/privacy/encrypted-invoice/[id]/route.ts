@@ -58,7 +58,7 @@ export async function GET(
             walletAddress: invoice.user.wallet?.address || null,
         })
     } catch (error) {
-        logger.error('Encrypted invoice GET [id] error:', error)
+        logger.error({ err: error }, 'Encrypted invoice GET [id] error:')
         return NextResponse.json(
             { error: 'Failed to fetch invoice' },
             { status: 500 }

@@ -116,7 +116,7 @@ async function processPayoutItem(
       return { success: false, errorMessage: 'Invalid payout type' };
     }
   } catch (error: any) {
-    logger.error('Error processing payout item:', error);
+    logger.error({ err: error }, 'Error processing payout item:');
     const errorMessage = error?.message || 'Unknown error occurred';
 
     return { success: false, errorMessage };
@@ -345,7 +345,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Mass payout error:', error);
+    logger.error({ err: error }, 'Mass payout error:');
     return NextResponse.json(
       {
         error: 'Internal server error',
@@ -445,7 +445,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Get batch status error:', error);
+    logger.error({ err: error }, 'Get batch status error:');
     return NextResponse.json(
       {
         error: 'Internal server error',

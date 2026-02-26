@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         : null,
     })
   } catch (error) {
-    logger.error('Tax vault GET error:', error)
+    logger.error({ err: error }, 'Tax vault GET error:')
     return NextResponse.json({ error: 'Failed to get tax vault' }, { status: 500 })
   }
 }
@@ -120,7 +120,7 @@ export async function PUT(request: NextRequest) {
         : null,
     })
   } catch (error) {
-    logger.error('Tax vault PUT error:', error)
+    logger.error({ err: error }, 'Tax vault PUT error:')
     return NextResponse.json({ error: 'Failed to update tax vault' }, { status: 500 })
   }
 }
@@ -160,7 +160,7 @@ export async function DELETE(request: NextRequest) {
       releasedAmountUsdc: releasedAmount,
     })
   } catch (error) {
-    logger.error('Tax vault DELETE error:', error)
+    logger.error({ err: error }, 'Tax vault DELETE error:')
     return NextResponse.json({ error: 'Failed to release tax vault' }, { status: 500 })
   }
 }

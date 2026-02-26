@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       breakdown,
     });
   } catch (error) {
-    logger.error("Split payment error:", error);
+    logger.error({ err: error }, "Split payment error:");
     return NextResponse.json(
       { error: "Payment failed" },
       { status: 500 }
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
       breakdown,
     });
   } catch (error) {
-    logger.error("Fee preview error:", error);
+    logger.error({ err: error }, "Fee preview error:");
     return NextResponse.json(
       { error: "Failed to calculate fees" },
       { status: 500 }

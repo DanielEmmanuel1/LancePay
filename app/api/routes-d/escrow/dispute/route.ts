@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    logger.error('Escrow dispute error:', error)
+    logger.error({ err: error }, 'Escrow dispute error:')
     return NextResponse.json({ error: 'Failed to dispute escrow' }, { status: 500 })
   }
 }

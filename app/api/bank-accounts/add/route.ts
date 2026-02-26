@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    logger.error('Error adding bank account:', error)
+    logger.error({ err: error }, 'Error adding bank account:')
 
     // Handle Prisma unique constraint errors
     if (error instanceof Error && error.message.includes('Unique constraint')) {

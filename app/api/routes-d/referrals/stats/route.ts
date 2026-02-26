@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
       recentHistory,
     });
   } catch (error) {
-    logger.error("Referral stats error:", error);
+    logger.error({ err: error }, "Referral stats error:");
     return NextResponse.json(
       { error: "Failed to fetch referral stats" },
       { status: 500 },

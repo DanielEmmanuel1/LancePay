@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
             data: mockData
         })
     } catch (error) {
-        logger.error('Transaction Analytics GET error:', error)
+        logger.error({ err: error }, 'Transaction Analytics GET error:')
         return NextResponse.json(
             { error: 'Failed to fetch transaction analytics' },
             { status: 500 }

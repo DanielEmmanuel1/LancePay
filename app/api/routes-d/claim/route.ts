@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       transactionHash: result.hash,
     });
   } catch (error) {
-    logger.error("Error claiming balance:", error);
+    logger.error({ err: error }, "Error claiming balance:");
     return NextResponse.json(
       { error: "Failed to claim balance" },
       { status: 500 }

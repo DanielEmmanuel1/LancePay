@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(user)
   } catch (error) {
-    logger.error('Profile GET error:', error)
+    logger.error({ err: error }, 'Profile GET error:')
     return NextResponse.json({ error: 'Failed to get profile' }, { status: 500 })
   }
 }
@@ -99,7 +99,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(user)
   } catch (error) {
-    logger.error('Profile PUT error:', error)
+    logger.error({ err: error }, 'Profile PUT error:')
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
   }
 }

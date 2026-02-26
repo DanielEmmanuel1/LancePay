@@ -46,7 +46,7 @@ export async function DELETE(
       apiKey: { id, name: apiKey.name }
     })
   } catch (error) {
-    logger.error('API key deactivation error:', error)
+    logger.error({ err: error }, 'API key deactivation error:')
     return NextResponse.json(
       { error: 'Failed to deactivate API key' },
       { status: 500 }

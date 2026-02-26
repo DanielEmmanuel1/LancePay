@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
       walletBadges,
     });
   } catch (error) {
-    logger.error("Badge verification error:", error);
+    logger.error({ err: error }, "Badge verification error:");
     return NextResponse.json(
       { error: "Failed to verify badge" },
       { status: 500 },

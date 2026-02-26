@@ -171,7 +171,7 @@ export async function PATCH(request: NextRequest) {
         usdcAmountRounded.toString(),
       );
     } catch (stellarError: unknown) {
-      logger.error("Stellar payment failed:", stellarError);
+      logger.error({ err: stellarError }, "Stellar payment failed:");
       return NextResponse.json(
         {
           error: "Failed to credit USDC to wallet",
@@ -258,7 +258,7 @@ export async function PATCH(request: NextRequest) {
         invoiceNumber: updatedInvoice.invoiceNumber,
         amountPaid: ngnAmount,
         currency: manualPayment.currency,
-      }).catch((err) => logger.error("Email notification failed:", err));
+      }).catch((err) => logger.error({ err: err }, "Email notification failed:"));
     }
 
     return NextResponse.json({
@@ -277,7 +277,7 @@ export async function PATCH(request: NextRequest) {
       },
     });
   } catch (error) {
-    logger.error("Manual payment verification error:", error);
+    logger.error({ err: error }, "Manual payment verification error:");
     return NextResponse.json(
       { error: "Failed to verify payment" },
       { status: 500 },

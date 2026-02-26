@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     logger.info('\n📥 Webhook Received:')
     logger.info(`   Event: ${eventType}`)
     logger.info(`   Signature: ${signature?.substring(0, 20)}...`)
-    logger.info(`   Payload:`, JSON.stringify(payload, null, 2))
+    logger.info({ payload }, "   Payload:")
 
     // Note: In a real test, you'd verify the signature here
     // For now, we'll just log it
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       message: 'Webhook received successfully',
     })
   } catch (error) {
-    logger.error('Webhook receiver error:', error)
+    logger.error({ err: error }, 'Webhook receiver error:')
     return NextResponse.json(
       { error: 'Failed to process webhook' },
       { status: 500 }

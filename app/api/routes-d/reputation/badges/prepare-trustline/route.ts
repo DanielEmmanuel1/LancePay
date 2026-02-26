@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ xdr, badgeId });
   } catch (error) {
-    logger.error("Prepare trustline error:", error);
+    logger.error({ err: error }, "Prepare trustline error:");
     return NextResponse.json({ error: "Failed to prepare trustline" }, { status: 500 });
   }
 }

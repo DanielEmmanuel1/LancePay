@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       count: balances.length,
     });
   } catch (error) {
-    logger.error("Error fetching claimable balances:", error);
+    logger.error({ err: error }, "Error fetching claimable balances:");
     return NextResponse.json(
       { error: "Failed to fetch claimable balances" },
       { status: 500 }

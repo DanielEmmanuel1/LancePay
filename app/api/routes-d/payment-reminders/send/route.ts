@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
         })
 
     } catch (error) {
-        logger.error('Send Reminder error:', error)
+        logger.error({ err: error }, 'Send Reminder error:')
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ reminders })
     } catch (error) {
-        logger.error('History GET error:', error)
+        logger.error({ err: error }, 'History GET error:')
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

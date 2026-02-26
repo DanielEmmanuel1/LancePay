@@ -26,7 +26,7 @@ export async function GET(
 
     return NextResponse.json({ success: true, goal: formatSavingsGoal(goal) })
   } catch (error) {
-    logger.error('Error fetching savings goal:', error)
+    logger.error({ err: error }, 'Error fetching savings goal:')
     return NextResponse.json({ error: 'Failed to fetch savings goal' }, { status: 500 })
   }
 }
@@ -120,7 +120,7 @@ export async function PATCH(
 
     return NextResponse.json({ error: 'No valid update provided' }, { status: 400 })
   } catch (error) {
-    logger.error('Error updating savings goal:', error)
+    logger.error({ err: error }, 'Error updating savings goal:')
     return NextResponse.json({ error: 'Failed to update savings goal' }, { status: 500 })
   }
 }
@@ -157,7 +157,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true, message: 'Goal deleted successfully' })
   } catch (error) {
-    logger.error('Error deleting savings goal:', error)
+    logger.error({ err: error }, 'Error deleting savings goal:')
     return NextResponse.json({ error: 'Failed to delete savings goal' }, { status: 500 })
   }
 }

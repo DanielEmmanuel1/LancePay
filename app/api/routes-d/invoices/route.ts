@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ invoices })
   } catch (error) {
-    logger.error('Invoices GET error:', error)
+    logger.error({ err: error }, 'Invoices GET error:')
     return NextResponse.json({ error: 'Failed to get invoices' }, { status: 500 })
   }
 }
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(invoice, { status: 201 })
   } catch (error) {
-    logger.error('Invoices POST error:', error)
+    logger.error({ err: error }, 'Invoices POST error:')
     return NextResponse.json({ error: 'Failed to create invoice' }, { status: 500 })
   }
 }

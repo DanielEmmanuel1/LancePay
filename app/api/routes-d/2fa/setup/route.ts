@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
             backupCodes
         })
     } catch (error) {
-        logger.error('2FA Setup Error:', error)
+        logger.error({ err: error }, '2FA Setup Error:')
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

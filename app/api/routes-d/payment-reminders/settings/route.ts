@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(settings)
     } catch (error) {
-        logger.error('Settings GET error:', error)
+        logger.error({ err: error }, 'Settings GET error:')
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
 }
@@ -64,7 +64,7 @@ export async function PUT(request: NextRequest) {
 
         return NextResponse.json(settings)
     } catch (error) {
-        logger.error('Settings PUT error:', error)
+        logger.error({ err: error }, 'Settings PUT error:')
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

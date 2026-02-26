@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error("Error calculating fee quote:", error);
+    logger.error({ err: error }, "Error calculating fee quote:");
     
     return NextResponse.json(
       { error: "Failed to calculate fee quote. Please try again later." },

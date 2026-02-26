@@ -40,7 +40,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true, message: 'Webhook deleted successfully' })
   } catch (error) {
-    logger.error('Webhook deletion error:', error)
+    logger.error({ err: error }, 'Webhook deletion error:')
     return NextResponse.json(
       { error: 'Failed to delete webhook' },
       { status: 500 }

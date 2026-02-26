@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    logger.error('Eligibility check error:', error)
+    logger.error({ err: error }, 'Eligibility check error:')
     return NextResponse.json(
       { error: 'Failed to check eligibility' },
       { status: 500 }

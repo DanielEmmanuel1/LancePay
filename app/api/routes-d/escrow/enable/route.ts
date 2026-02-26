@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
         invoiceId: invoice.id,
       })
     } catch (deployError) {
-      logger.error('Contract deployment failed:', deployError)
+      logger.error({ err: deployError }, 'Contract deployment failed:')
       return NextResponse.json({ error: 'Failed to deploy escrow contract on-chain' }, { status: 500 })
     }
 
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    logger.error('Escrow enable error:', error)
+    logger.error({ err: error }, 'Escrow enable error:')
     return NextResponse.json({ error: 'Failed to enable escrow' }, { status: 500 })
   }
 }

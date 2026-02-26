@@ -51,7 +51,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       })),
     })
   } catch (error) {
-    logger.error('Dispute get error:', error)
+    logger.error({ err: error }, 'Dispute get error:')
     return NextResponse.json({ error: 'Failed to get dispute' }, { status: 500 })
   }
 }

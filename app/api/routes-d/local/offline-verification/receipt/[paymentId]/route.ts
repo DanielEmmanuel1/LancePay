@@ -101,7 +101,7 @@ export async function GET(
       },
     })
   } catch (error) {
-    logger.error('Receipt download error:', error)
+    logger.error({ err: error }, 'Receipt download error:')
     return NextResponse.json(
       { error: 'Failed to retrieve receipt' },
       { status: 500 }

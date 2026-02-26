@@ -4,6 +4,7 @@ import { verifyAuthToken } from '@/lib/auth'
 import speakeasy from 'speakeasy'
 import { decrypt, timingSafeEqual } from '@/lib/crypto'
 import { logger } from '@/lib/logger'
+import { getClientIp, twoFactorLimiter as rateLimiter } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
     try {

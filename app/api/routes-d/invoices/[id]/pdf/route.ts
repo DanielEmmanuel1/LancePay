@@ -70,7 +70,7 @@ export async function GET(
       },
     })
   } catch (error) {
-    logger.error('PDF generation error:', error)
+    logger.error({ err: error }, 'PDF generation error:')
     return NextResponse.json({ error: 'Failed to generate PDF' }, { status: 500 })
   }
 }

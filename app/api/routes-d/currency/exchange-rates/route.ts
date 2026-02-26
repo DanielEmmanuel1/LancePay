@@ -42,7 +42,7 @@ export async function GET() {
             }
         })
     } catch (error) {
-        logger.error('Exchange rates GET error:', error)
+        logger.error({ err: error }, 'Exchange rates GET error:')
         return NextResponse.json({ error: 'Failed to fetch exchange rates' }, { status: 500 })
     }
 }

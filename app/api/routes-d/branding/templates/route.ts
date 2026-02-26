@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    logger.error('Error fetching branding settings:', error)
+    logger.error({ err: error }, 'Error fetching branding settings:')
     return NextResponse.json({ 
       error: 'Internal server error',
       message: error instanceof Error ? error.message : 'Unknown error'
@@ -86,7 +86,7 @@ export async function PATCH(request: NextRequest) {
       branding
     })
   } catch (error) {
-    logger.error('Error updating branding settings:', error)
+    logger.error({ err: error }, 'Error updating branding settings:')
     return NextResponse.json({ 
       error: 'Internal server error',
       message: error instanceof Error ? error.message : 'Unknown error'

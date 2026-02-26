@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    logger.error('Dispute respond error:', error)
+    logger.error({ err: error }, 'Dispute respond error:')
     return NextResponse.json({ error: 'Failed to add dispute message' }, { status: 500 })
   }
 }

@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       rule: formatAutoSwapRule(rule),
     })
   } catch (error) {
-    logger.error('Error fetching auto-swap rule:', error)
+    logger.error({ err: error }, 'Error fetching auto-swap rule:')
     return NextResponse.json(
       { error: 'Failed to fetch auto-swap rule' },
       { status: 500 }
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
       rule: formatAutoSwapRule(rule),
     }, { status: 201 })
   } catch (error) {
-    logger.error('Error saving auto-swap rule:', error)
+    logger.error({ err: error }, 'Error saving auto-swap rule:')
     return NextResponse.json(
       { error: 'Failed to save auto-swap rule' },
       { status: 500 }
@@ -245,7 +245,7 @@ export async function PATCH(request: NextRequest) {
       rule: formatAutoSwapRule(rule),
     })
   } catch (error) {
-    logger.error('Error updating auto-swap rule status:', error)
+    logger.error({ err: error }, 'Error updating auto-swap rule status:')
     return NextResponse.json(
       { error: 'Failed to update auto-swap rule status' },
       { status: 500 }
@@ -293,7 +293,7 @@ export async function DELETE(request: NextRequest) {
       message: 'Auto-swap rule deleted successfully',
     })
   } catch (error) {
-    logger.error('Error deleting auto-swap rule:', error)
+    logger.error({ err: error }, 'Error deleting auto-swap rule:')
     return NextResponse.json(
       { error: 'Failed to delete auto-swap rule' },
       { status: 500 }

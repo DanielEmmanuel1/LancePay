@@ -6,6 +6,8 @@ import { processAutoSwap } from '@/lib/auto-swap'
 import { dispatchWebhooks } from '@/lib/webhooks'
 import { updateUserTrustScore } from '@/lib/reputation'
 import { logger } from '@/lib/logger'
+import { processAdvanceRepayment } from "@/lib/advance-repayment";
+import { processWaterfallPayments } from "@/lib/waterfall";
 
 export async function POST(request: NextRequest) {
   try {

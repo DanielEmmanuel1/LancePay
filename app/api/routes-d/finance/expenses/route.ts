@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
       expenses: expenses.map(serializeExpense),
     })
   } catch (error) {
-    logger.error('Expenses GET error:', error)
+    logger.error({ err: error }, 'Expenses GET error:')
     return NextResponse.json({ error: 'Failed to list expenses' }, { status: 500 })
   }
 }
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    logger.error('Expenses POST error:', error)
+    logger.error({ err: error }, 'Expenses POST error:')
     return NextResponse.json({ error: 'Failed to create expense' }, { status: 500 })
   }
 }

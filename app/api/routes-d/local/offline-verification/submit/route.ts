@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     try {
       receiptUrl = await storeReceiptFile(invoice.id, file)
     } catch (error) {
-      logger.error('File storage error:', error)
+      logger.error({ err: error }, 'File storage error:')
       return NextResponse.json(
         { error: 'Failed to store receipt file' },
         { status: 500 }
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
         currency,
         notes,
       }).catch((err) => {
-        logger.error('Email notification failed:', err)
+        logger.error({ err: err }, 'Email notification failed:')
         // Don't fail the request if email fails
       })
     }
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
         'Payment proof submitted successfully. The freelancer will verify it shortly.',
     })
   } catch (error) {
-    logger.error('Manual payment submission error:', error)
+    logger.error({ err: error }, 'Manual payment submission error:')
     return NextResponse.json(
       { error: 'Failed to submit payment proof' },
       { status: 500 }

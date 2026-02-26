@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCustomerStatus } from "@/lib/sep12-kyc";
 import { logger } from '@/lib/logger'
+import { getClientIp, kycStatusLimiter, buildRateLimitResponse } from "@/lib/rate-limit";
 
 /**
  * GET /api/kyc/status
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
       data: customerInfo,
     });
   } catch (error: any) {
-    logger.error("Error fetching KYC status:", error);
+    logger.error({ err: error }, "Error fetching KYC status:");
     return NextResponse.json(
       { error: error.message || "Failed to fetch KYC status" },
       { status: 500 }

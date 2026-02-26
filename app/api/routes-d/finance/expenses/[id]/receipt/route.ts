@@ -70,7 +70,7 @@ export async function GET(
       },
     })
   } catch (error) {
-    logger.error('Expense receipt GET error:', error)
+    logger.error({ err: error }, 'Expense receipt GET error:')
     return NextResponse.json({ error: 'Failed to retrieve expense receipt' }, { status: 500 })
   }
 }

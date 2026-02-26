@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
             }
         }, { status: 201 })
     } catch (error) {
-        logger.error('Merchant Onboarding POST error:', error)
+        logger.error({ err: error }, 'Merchant Onboarding POST error:')
         return NextResponse.json({ error: 'Failed to submit onboarding data' }, { status: 500 })
     }
 }

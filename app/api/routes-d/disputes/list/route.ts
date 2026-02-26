@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       })),
     })
   } catch (error) {
-    logger.error('Disputes list error:', error)
+    logger.error({ err: error }, 'Disputes list error:')
     return NextResponse.json({ error: 'Failed to list disputes' }, { status: 500 })
   }
 }

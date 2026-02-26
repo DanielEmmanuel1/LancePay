@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
             },
         }, { status: 201 })
     } catch (error) {
-        logger.error('Support Ticket POST error:', error)
+        logger.error({ err: error }, 'Support Ticket POST error:')
         return NextResponse.json({ error: 'Failed to submit support ticket' }, { status: 500 })
     }
 }

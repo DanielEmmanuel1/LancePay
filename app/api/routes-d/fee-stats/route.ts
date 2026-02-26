@@ -15,7 +15,7 @@ export async function GET() {
       data: feeData,
     });
   } catch (error) {
-    logger.error("Error fetching fee stats:", error);
+    logger.error({ err: error }, "Error fetching fee stats:");
     return NextResponse.json(
       { error: "Failed to fetch fee stats" },
       { status: 500 }

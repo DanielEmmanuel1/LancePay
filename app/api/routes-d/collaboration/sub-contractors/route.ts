@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
       })),
     });
   } catch (error) {
-    logger.error("Get collaborators error:", error);
+    logger.error({ err: error }, "Get collaborators error:");
     return NextResponse.json(
       { error: "Failed to get collaborators" },
       { status: 500 },
@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    logger.error("Add collaborator error:", error);
+    logger.error({ err: error }, "Add collaborator error:");
     const message =
       error instanceof Error ? error.message : "Failed to add collaborator";
     return NextResponse.json({ error: message }, { status: 400 });
@@ -235,7 +235,7 @@ export async function PATCH(request: NextRequest) {
       },
     });
   } catch (error) {
-    logger.error("Update collaborator error:", error);
+    logger.error({ err: error }, "Update collaborator error:");
     const message =
       error instanceof Error ? error.message : "Failed to update collaborator";
     return NextResponse.json({ error: message }, { status: 400 });
@@ -298,7 +298,7 @@ export async function DELETE(request: NextRequest) {
       message: "Collaborator removed",
     });
   } catch (error) {
-    logger.error("Remove collaborator error:", error);
+    logger.error({ err: error }, "Remove collaborator error:");
     const message =
       error instanceof Error ? error.message : "Failed to remove collaborator";
     return NextResponse.json({ error: message }, { status: 400 });

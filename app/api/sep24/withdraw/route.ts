@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       withdraw: info.withdraw,
     });
   } catch (error) {
-    logger.error('Error getting anchor info:', error);
+    logger.error({ err: error }, 'Error getting anchor info:');
     return NextResponse.json(
       { error: 'Failed to get anchor info' },
       { status: 500 }
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
       asset,
     });
   } catch (error) {
-    logger.error('Withdrawal initiation error:', error);
+    logger.error({ err: error }, 'Withdrawal initiation error:');
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to initiate withdrawal' },
       { status: 500 }

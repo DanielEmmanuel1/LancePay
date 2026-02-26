@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       lastUpdatedAt: scoreData.lastUpdatedAt.toISOString(),
     })
   } catch (error) {
-    logger.error('Error fetching trust score:', error)
+    logger.error({ err: error }, 'Error fetching trust score:')
     return NextResponse.json(
       { 
         error: 'Failed to fetch trust score',

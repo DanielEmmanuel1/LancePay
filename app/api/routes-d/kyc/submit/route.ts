@@ -3,6 +3,46 @@ import { submitKYCData } from "@/lib/sep12-kyc";
 import { getAuthContext } from "@/app/api/routes-d/auto-swap/_shared";
 import { prisma } from "@/lib/db";
 import { logger } from '@/lib/logger'
+import { getClientIp, kycSubmitGlobal, kycSubmitHourly, kycSubmitDaily, isKycRateLimitBypassed, buildRateLimitResponse } from "@/lib/rate-limit";
+
+// Type-safe document handling
+type DocumentField = 'photo_id_front' | 'photo_id_back' | 'photo_proof_residence';
+const DOCUMENT_FIELDS: DocumentField[] = ['photo_id_front', 'photo_id_back', 'photo_proof_residence'];
+const MAX_FILE_COUNT = 6;
+
+class BadRequestError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'BadRequestError';
+  }
+}
+
+function parseOptionalString(val: any): string | undefined {
+  if (typeof val === 'string') return val;
+  return undefined;
+}
+
+function parseOptionalIdType(val: any): "passport" | "drivers_license" | "national_id" | undefined {
+  if (val === 'passport' || val === 'drivers_license' || val === 'national_id') return val;
+  return undefined;
+}
+
+function isDocumentField(val: string): val is DocumentField {
+  return DOCUMENT_FIELDS.includes(val as DocumentField);
+}
+
+async function toValidatedFileFromUrl(url: string, field: string): Promise<File> {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Failed to fetch document from ${url}`);
+  const blob = await response.blob();
+  return new File([blob], `${field}.jpg`, { type: blob.type });
+}
+
+async function resolveDocumentFromFormData(formData: FormData, field: string): Promise<File | null> {
+  const file = formData.get(field);
+  if (file instanceof File) return file;
+  return null;
+}
 
 /**
  * POST /api/kyc/submit
@@ -175,7 +215,7 @@ export async function POST(req: NextRequest) {
       uploadedDocumentCount,
     });
   } catch (error: any) {
-    logger.error("Error submitting KYC data:", error);
+    logger.error({ err: error }, "Error submitting KYC data:");
     return NextResponse.json(
       { error: error.message || "Failed to submit KYC data" },
       { status: 500 }

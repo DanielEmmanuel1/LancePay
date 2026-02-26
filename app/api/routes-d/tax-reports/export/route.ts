@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    logger.error('Tax export error:', error)
+    logger.error({ err: error }, 'Tax export error:')
     return NextResponse.json({ error: 'Failed to export tax report' }, { status: 500 })
   }
 }

@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
       assets,
     })
   } catch (error) {
-    logger.error('Balance GET error:', error)
+    logger.error({ err: error }, 'Balance GET error:')
     return NextResponse.json({ error: 'Failed to get balance' }, { status: 500 })
   }
 }

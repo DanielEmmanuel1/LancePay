@@ -211,7 +211,7 @@ export async function POST(request: NextRequest) {
       )
     }
   } catch (error) {
-    logger.error('Payment advance error:', error)
+    logger.error({ err: error }, 'Payment advance error:')
     return NextResponse.json(
       { error: 'Failed to process advance request' },
       { status: 500 }
@@ -275,6 +275,6 @@ async function sendAdvanceConfirmationEmail(params: {
       `,
     })
   } catch (error) {
-    logger.error('Failed to send advance confirmation email:', error)
+    logger.error({ err: error }, 'Failed to send advance confirmation email:')
   }
 }

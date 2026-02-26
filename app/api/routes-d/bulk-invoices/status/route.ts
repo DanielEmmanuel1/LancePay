@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       results: (job.results as any) ?? [],
     })
   } catch (error) {
-    logger.error('Bulk invoices status error:', error)
+    logger.error({ err: error }, 'Bulk invoices status error:')
     return NextResponse.json({ error: 'Failed to get job status' }, { status: 500 })
   }
 }

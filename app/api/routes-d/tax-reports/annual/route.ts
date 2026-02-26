@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
       clientBreakdown,
     })
   } catch (error) {
-    logger.error('Tax annual report error:', error)
+    logger.error({ err: error }, 'Tax annual report error:')
     return NextResponse.json({ error: 'Failed to generate annual report' }, { status: 500 })
   }
 }

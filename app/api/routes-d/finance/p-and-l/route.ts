@@ -223,7 +223,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(responseData);
   } catch (error) {
-    logger.error("P&L Report Error:", error);
+    logger.error({ err: error }, "P&L Report Error:");
     return NextResponse.json(
       { error: "Failed to generate P&L report" },
       { status: 500 },

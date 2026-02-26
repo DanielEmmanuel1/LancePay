@@ -177,7 +177,7 @@ export async function GET(request: NextRequest) {
       })),
     })
   } catch (error) {
-    logger.error('Teams multisig GET error:', error)
+    logger.error({ err: error }, 'Teams multisig GET error:')
     return NextResponse.json({ error: 'Failed to fetch multi-sig data' }, { status: 500 })
   }
 }
@@ -278,7 +278,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    logger.error('Teams multisig POST error:', error)
+    logger.error({ err: error }, 'Teams multisig POST error:')
     return NextResponse.json({ error: 'Failed to create collective wallet' }, { status: 500 })
   }
 }

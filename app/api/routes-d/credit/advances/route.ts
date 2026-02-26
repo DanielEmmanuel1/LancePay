@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       })),
     })
   } catch (error) {
-    logger.error('Get advances error:', error)
+    logger.error({ err: error }, 'Get advances error:')
     return NextResponse.json(
       { error: 'Failed to fetch advances' },
       { status: 500 }

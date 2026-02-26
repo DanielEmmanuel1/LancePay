@@ -333,7 +333,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    logger.error('TCC Data Generator Error:', error)
+    logger.error({ err: error }, 'TCC Data Generator Error:')
     return NextResponse.json(
       { error: 'Failed to generate TCC data. Please try again later.' },
       { status: 500 }

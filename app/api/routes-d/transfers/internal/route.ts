@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     try {
       txHash = await sendUSDCPayment(sender.wallet.address, senderSecretKey, recipientAddress, amount)
     } catch (error: any) {
-      logger.error('Stellar transfer error:', error)
+      logger.error({ err: error }, 'Stellar transfer error:')
       return NextResponse.json(
         {
           error: 'Transfer failed on Stellar network',
@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
       memo: memo || null,
     })
   } catch (error) {
-    logger.error('Internal transfer error:', error)
+    logger.error({ err: error }, 'Internal transfer error:')
     return NextResponse.json({ error: 'Failed to process transfer' }, { status: 500 })
   }
 }

@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    logger.error('External invoice creation error:', error)
+    logger.error({ err: error }, 'External invoice creation error:')
 
     // Handle specific errors
     if (error instanceof Error) {

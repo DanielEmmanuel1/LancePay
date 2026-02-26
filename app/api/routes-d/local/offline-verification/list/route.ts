@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ payments: response })
   } catch (error) {
-    logger.error('List manual payments error:', error)
+    logger.error({ err: error }, 'List manual payments error:')
     return NextResponse.json(
       { error: 'Failed to fetch payments' },
       { status: 500 }

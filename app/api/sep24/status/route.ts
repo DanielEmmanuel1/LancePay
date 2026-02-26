@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
         });
       }
     } catch (error) {
-      logger.error('Error fetching anchor status:', error);
+      logger.error({ err: error }, 'Error fetching anchor status:');
       // Continue with cached status
     }
   }

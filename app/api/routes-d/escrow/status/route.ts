@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       })),
     })
   } catch (error) {
-    logger.error('Escrow status error:', error)
+    logger.error({ err: error }, 'Escrow status error:')
     return NextResponse.json({ error: 'Failed to get escrow status' }, { status: 500 })
   }
 }
