@@ -75,6 +75,8 @@ import { updateUserTrustScore } from "@/lib/reputation";
 import { logAuditEvent, extractRequestMetadata } from "@/lib/audit";
 import { processSavingsOnPayment } from "@/lib/savings";
 import { processWaterfallPayments } from "@/lib/waterfall";
+import { processAdvanceRepayment } from "@/lib/advance-repayment";
+import { logger } from '@/lib/logger'
 
 export async function GET(
   request: NextRequest,
@@ -98,7 +100,7 @@ export async function GET(
     null,
     extractRequestMetadata(request.headers),
   ).catch((error) => {
-    console.error("Failed to log invoice.viewed audit event:", error);
+    logger.error({ err: error }, "Failed to log invoice.viewed audit event:");
   });
 
   // Dispatch webhook for invoice.viewed event (async, non-blocking)
@@ -110,7 +112,7 @@ export async function GET(
     clientEmail: invoice.clientEmail,
     viewedAt: new Date().toISOString(),
   }).catch((error) => {
-    console.error("Failed to dispatch invoice.viewed webhook:", error);
+    logger.error({ err: error }, "Failed to dispatch invoice.viewed webhook:");
   });
 
   return NextResponse.json({
@@ -145,12 +147,30 @@ export async function POST(
     return NextResponse.json({ error: "Invalid invoice" }, { status: 400 });
   }
 
-  // Update invoice and create transaction in a single transaction
-  const updatedInvoice = await prisma.$transaction(async (tx: any) => {
-    await tx.invoice.update({
-      where: { id: invoice.id },
-      data: { status: "paid", paidAt: new Date() },
+  // Keep invoice settlement atomic and ordered to avoid payout races.
+  const paymentResult = await prisma.$transaction(async (tx: any) => {
+    const now = new Date();
+
+    const updateResult = await tx.invoice.updateMany({
+      where: { id: invoice.id, status: "pending" },
+      data: { status: "paid", paidAt: now },
     });
+
+    if (updateResult.count === 0) {
+      return {
+        updatedInvoice: null,
+        advanceRepayment: {
+          processed: false,
+          repaidAmount: 0,
+          remainingAmount: Number(invoice.amount),
+        },
+        waterfallResult: {
+          processed: false,
+          leadShare: Number(invoice.amount),
+          distributions: [],
+        },
+      };
+    }
 
     await tx.transaction.create({
       data: {
@@ -160,7 +180,7 @@ export async function POST(
         amount: invoice.amount,
         currency: invoice.currency,
         invoiceId: invoice.id,
-        completedAt: new Date(),
+        completedAt: now,
       },
     });
 
@@ -173,19 +193,32 @@ export async function POST(
       tx,
     );
 
+    const advanceRepayment = await processAdvanceRepayment(
+      tx,
+      invoice.id,
+      Number(invoice.amount),
+    );
+
+    const waterfallResult = await processWaterfallPayments(
+      invoice.id,
+      advanceRepayment.remainingAmount,
+      tx,
+    );
+
     // Return the updated invoice with user data
-    return tx.invoice.findUnique({
+    const updatedInvoice = await tx.invoice.findUnique({
       where: { id: invoice.id },
       include: { user: true },
     });
+
+    return { updatedInvoice, advanceRepayment, waterfallResult };
   });
 
-  if (!updatedInvoice) {
-    return NextResponse.json(
-      { error: "Failed to update invoice" },
-      { status: 500 },
-    );
+  if (!paymentResult.updatedInvoice) {
+    return NextResponse.json({ error: "Invalid invoice" }, { status: 400 });
   }
+
+  const updatedInvoice = paymentResult.updatedInvoice;
 
   if (invoice.user.referredById) {
     await createReferralEarning({
@@ -202,14 +235,16 @@ export async function POST(
     Number(updatedInvoice.amount),
   );
 
-  // Process waterfall payments to sub-contractors
-  const waterfallResult = await processWaterfallPayments(
-    updatedInvoice.id,
-    Number(updatedInvoice.amount),
-  );
+  const waterfallResult = paymentResult.waterfallResult;
   if (waterfallResult.processed) {
-    console.log(
+    logger.info(
       `Waterfall payments processed: ${waterfallResult.distributions.length} distributions, lead share: ${waterfallResult.leadShare}`,
+    );
+  }
+
+  if (paymentResult.advanceRepayment.processed) {
+    console.log(
+      `Advance repaid before waterfall: ${paymentResult.advanceRepayment.repaidAmount} USDC`,
     );
   }
 
@@ -237,7 +272,7 @@ export async function POST(
   try {
     await updateUserTrustScore(updatedInvoice.userId);
   } catch (error) {
-    console.error("Failed to update trust score after payment:", error);
+    logger.error({ err: error }, "Failed to update trust score after payment:");
     // Don't fail the payment if score update fails
   }
 

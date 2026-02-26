@@ -5,6 +5,7 @@ import { sendEscrowReleasedEmail } from '@/lib/email'
 import { processWaterfallPayments } from '@/lib/waterfall'
 import { sendStellarPayment } from '@/lib/stellar'
 import { Keypair } from '@stellar/stellar-sdk'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
         try {
           await releaseEscrowFunds(invoice.escrowContractId)
         } catch (err) {
-          console.error('On-chain escrow release failed:', err)
+          logger.error({ err }, 'On-chain escrow release failed:')
           throw new Error('Failed to release escrow on-chain. Please ensure you have sufficient XLM for gas.')
         }
       }
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest) {
               )
             } catch (err) {
               // Failed distributions are skipped in the payment loop — no throw
-              console.error(`Failed to send payment to collaborator ${dist.email}:`, err);
+              logger.error({ err, collaboratorEmail: dist.email }, `Failed to send payment to collaborator ${dist.email}:`);
             }
           }
         }
@@ -164,7 +165,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error && error.message === 'ESCROW_RELEASE_CONFLICT') {
       return NextResponse.json({ error: 'Escrow status changed. Please refresh and retry.' }, { status: 409 })
     }
-    console.error('Escrow release error:', error)
+    logger.error({ err: error }, 'Escrow release error:')
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to release escrow' }, { status: 500 })
   }
 }
