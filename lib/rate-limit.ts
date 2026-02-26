@@ -222,6 +222,13 @@ export const kycStatusLimiter = new RouteRateLimiter({
   windowMs: 60_000,
 })
 
+// KYB (business verification) has the same rate limits as KYC status
+export const kybStatusLimiter = new RouteRateLimiter({
+  id: 'kyb-status',
+  maxRequests: 30,
+  windowMs: 60_000,
+})
+
 const KYC_BYPASS_IDS: Set<string> = new Set(
   (process.env.KYC_RATE_LIMIT_BYPASS_USER_IDS ?? '')
     .split(',')
