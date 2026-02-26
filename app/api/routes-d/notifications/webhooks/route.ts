@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { getAuthContext } from '@/app/api/routes-d/disputes/_shared'
 import { generateWebhookSecret } from '@/lib/webhooks'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 /**
  * Validation schema for creating a webhook
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ webhooks })
   } catch (error) {
-    console.error('Webhooks GET error:', error)
+    logger.error({ err: error }, 'Webhooks GET error:')
     return NextResponse.json(
       { error: 'Failed to fetch webhooks' },
       { status: 500 }
@@ -156,7 +157,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    console.error('Webhook creation error:', error)
+    logger.error({ err: error }, 'Webhook creation error:')
     return NextResponse.json(
       { error: 'Failed to create webhook' },
       { status: 500 }

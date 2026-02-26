@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 import {
   computePlatformFee,
   computeWithdrawalFee,
@@ -81,7 +82,7 @@ export async function GET(request: NextRequest) {
       clientBreakdown,
     })
   } catch (error) {
-    console.error('Tax annual report error:', error)
+    logger.error({ err: error }, 'Tax annual report error:')
     return NextResponse.json({ error: 'Failed to generate annual report' }, { status: 500 })
   }
 }

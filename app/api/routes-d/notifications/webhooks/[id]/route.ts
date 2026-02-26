@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthContext } from '@/app/api/routes-d/disputes/_shared'
+import { logger } from '@/lib/logger'
 
 /**
  * DELETE /api/routes-d/notifications/webhooks/[id]
@@ -39,7 +40,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true, message: 'Webhook deleted successfully' })
   } catch (error) {
-    console.error('Webhook deletion error:', error)
+    logger.error({ err: error }, 'Webhook deletion error:')
     return NextResponse.json(
       { error: 'Failed to delete webhook' },
       { status: 500 }
