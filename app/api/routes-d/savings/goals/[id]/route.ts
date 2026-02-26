@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getAuthContext, UpdateSavingsGoalSchema, formatSavingsGoal } from '../../_shared'
+import {
+  getAuthContext,
+  UpdateSavingsGoalSchema,
+  formatSavingsGoal,
+  validateTotalSavingsPercentage,
+} from '../../_shared'
 import { logger } from '@/lib/logger'
 
 export async function GET(
@@ -88,19 +93,10 @@ export async function PATCH(
     if (isActive !== undefined) {
       // Check 50% limit when reactivating
       if (isActive && !goal.isActive) {
-        const activeGoals = await prisma.savingsGoal.findMany({
-          where: {
-            userId: user.id,
-            isActive: true,
-            status: 'in_progress',
-            id: { not: id },
-          },
-        })
-        const currentTotal = activeGoals.reduce((sum, g) => sum + g.savingsPercentage, 0)
-
-        if (currentTotal + goal.savingsPercentage > 50) {
+        const validation = await validateTotalSavingsPercentage(user.id, goal.savingsPercentage, id)
+        if (!validation.valid) {
           return NextResponse.json(
-            { error: `Cannot reactivate: would exceed 50% limit (current: ${currentTotal}%)` },
+            { error: validation.error },
             { status: 400 }
           )
         }

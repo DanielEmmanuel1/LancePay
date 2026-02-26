@@ -4,8 +4,8 @@ import { processPendingRetries } from '@/lib/webhooks'
 
 /**
  * GET /api/cron/retry-webhooks
- * Daily safety-net sweep for missed webhook retries + cleanup of old delivery records.
- * Scheduled via Vercel Cron at 3 AM UTC.
+ * Safety-net sweep for webhook retries + cleanup of old delivery records.
+ * Scheduled via Vercel Cron every 5 minutes.
  */
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
@@ -17,13 +17,13 @@ export async function GET(request: Request) {
     // Process any pending retries that QStash may have missed
     const retryResult = await processPendingRetries(50)
 
-    // Cleanup: delete delivered/exhausted records older than 30 days
+    // Cleanup: delete terminal delivery records older than 30 days.
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
     const cleanedUp = await prisma.webhookDelivery.deleteMany({
       where: {
-        status: { in: ['delivered', 'exhausted'] },
+        status: { in: ['delivered', 'failed', 'exhausted'] },
         updatedAt: { lt: thirtyDaysAgo },
       },
     })

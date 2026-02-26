@@ -5,6 +5,7 @@ import {
   getAuthContext,
   CreateSavingsGoalSchema,
   formatSavingsGoal,
+  validateTotalSavingsPercentage,
 } from '../_shared'
 
 export async function GET(request: NextRequest) {
@@ -60,17 +61,10 @@ export async function POST(request: NextRequest) {
 
     const { title, targetAmount, savingsPercentage } = validationResult.data
 
-    // Check total percentage across all active goals
-    const activeGoals = await prisma.savingsGoal.findMany({
-      where: { userId: user.id, isActive: true, status: 'in_progress' },
-    })
-    const currentTotal = activeGoals.reduce((sum, g) => sum + g.savingsPercentage, 0)
-
-    if (currentTotal + savingsPercentage > 50) {
+    const validation = await validateTotalSavingsPercentage(user.id, savingsPercentage)
+    if (!validation.valid) {
       return NextResponse.json(
-        {
-          error: `Cannot exceed 50% total savings. Current: ${currentTotal}%, Requested: ${savingsPercentage}%, Available: ${50 - currentTotal}%`,
-        },
+        { error: validation.error },
         { status: 400 }
       )
     }
