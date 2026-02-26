@@ -491,15 +491,24 @@ export async function sendWebhookDisabledEmail(params: {
   userName: string
   webhookUrl: string
   lastError: string
+  autoDisabled?: boolean
 }) {
+  const autoDisabled = params.autoDisabled ?? true
+
   return sendEmail({
     to: params.to,
-    subject: 'Webhook Disabled - Consecutive Delivery Failures',
+    subject: autoDisabled
+      ? 'Webhook Disabled - Consecutive Delivery Failures'
+      : 'Webhook Delivery Failed Permanently',
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px;">
-        <h2 style="color: #111;">Webhook Disabled</h2>
+        <h2 style="color: #111;">Webhook Delivery Alert</h2>
         <p>Hi ${escapeHtml(params.userName)},</p>
-        <p>Your webhook endpoint has been automatically disabled after 5 consecutive delivery failures.</p>
+        <p>
+          ${autoDisabled
+            ? 'Your webhook endpoint has been automatically disabled after 10 consecutive delivery failures.'
+            : 'A webhook delivery has permanently failed after all retry attempts were exhausted.'}
+        </p>
 
         <div style="background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; padding: 20px; border-radius: 12px; margin: 20px 0;">
           <p style="margin: 5px 0;"><strong>Endpoint:</strong> ${escapeHtml(params.webhookUrl)}</p>
@@ -510,7 +519,7 @@ export async function sendWebhookDisabledEmail(params: {
         <ul style="color: #333; line-height: 1.8;">
           <li>Verify your webhook endpoint is accessible and returning 2xx status codes</li>
           <li>Check your server logs for errors</li>
-          <li>Once fixed, re-enable the webhook from your LancePay dashboard</li>
+          <li>${autoDisabled ? 'Once fixed, re-enable the webhook from your LancePay dashboard' : 'You can manually retry from your LancePay webhook delivery logs'}</li>
         </ul>
 
         <p style="color: #666; font-size: 12px; margin-top: 20px;">

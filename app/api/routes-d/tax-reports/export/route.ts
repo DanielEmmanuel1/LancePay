@@ -73,7 +73,8 @@ export async function GET(request: NextRequest) {
       lines.push(toCsvRow(['Date', 'Invoice Number', 'Client', 'Description', 'Amount', 'Fees', 'Net']))
 
       for (const t of income as any[]) {
-        const dt = (t.completedAt as Date).toISOString().slice(0, 10)
+        const completedAt = t.completedAt as Date | null
+        const dt = completedAt ? completedAt.toISOString().slice(0, 10) : 'UNKNOWN_DATE'
         const invNum = t.invoice?.invoiceNumber || ''
         const client = t.invoice?.clientEmail || ''
         const desc = t.invoice?.description || ''

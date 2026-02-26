@@ -36,18 +36,20 @@ export interface WebhookDispatchResult {
 }
 
 /**
- * Retry backoff schedule in milliseconds.
- * Delays between attempts: 1m, 5m, 15m, 1h, 1h
+ * Retry backoff schedule in milliseconds after each failed attempt.
+ * Attempts: immediate, +1m, +5m, +15m, +1h, +6h, +24h (max 7 attempts)
  */
 const RETRY_DELAYS_MS = [
-  1 * 60_000,    // 1 minute
-  5 * 60_000,    // 5 minutes
-  15 * 60_000,   // 15 minutes
-  60 * 60_000,   // 1 hour
-  60 * 60_000,   // 1 hour
+  1 * 60_000,      // 1 minute
+  5 * 60_000,      // 5 minutes
+  15 * 60_000,     // 15 minutes
+  60 * 60_000,     // 1 hour
+  6 * 60 * 60_000, // 6 hours
+  24 * 60 * 60_000, // 24 hours
 ] as const
 
-const MAX_ATTEMPTS = 5
+const MAX_ATTEMPTS = 7
+const AUTO_DISABLE_FAILURE_THRESHOLD = 10
 
 const qstashClient = new Client({ token: process.env.QSTASH_TOKEN || '' })
 
@@ -299,34 +301,48 @@ export async function processRetryDelivery(deliveryId: string): Promise<boolean>
 
   // Retry failed
   const isExhausted = newAttemptCount >= MAX_ATTEMPTS
+  const webhookFailureState = await prisma.userWebhook.update({
+    where: { id: delivery.webhookId },
+    data: {
+      lastFailureAt: now,
+      consecutiveFailures: { increment: 1 },
+      status: 'FAILING',
+    },
+    select: {
+      consecutiveFailures: true,
+      userId: true,
+      targetUrl: true,
+    },
+  })
+
+  const shouldDisableWebhook = webhookFailureState.consecutiveFailures >= AUTO_DISABLE_FAILURE_THRESHOLD
 
   if (isExhausted) {
-    await prisma.$transaction([
-      prisma.webhookDelivery.update({
-        where: { id: deliveryId },
-        data: {
-          status: 'exhausted',
-          attemptCount: newAttemptCount,
-          lastAttemptAt: now,
-          nextRetryAt: null,
-          lastStatusCode: result.statusCode ?? null,
-          lastError: result.error ?? null,
-        },
-      }),
-      prisma.userWebhook.update({
+    await prisma.webhookDelivery.update({
+      where: { id: deliveryId },
+      data: {
+        status: 'failed',
+        attemptCount: newAttemptCount,
+        lastAttemptAt: now,
+        nextRetryAt: null,
+        lastStatusCode: result.statusCode ?? null,
+        lastError: result.error ?? null,
+      },
+    })
+
+    if (shouldDisableWebhook) {
+      await prisma.userWebhook.update({
         where: { id: delivery.webhookId },
         data: {
           status: 'DISABLED',
           isActive: false,
-          consecutiveFailures: { increment: 1 },
-          lastFailureAt: now,
         },
-      }),
-    ])
+      })
+    }
 
-    // Send notification email (fire-and-forget)
+    // Notify on permanent delivery failure.
     const user = await prisma.user.findUnique({
-      where: { id: delivery.webhook.userId },
+      where: { id: webhookFailureState.userId },
       select: { email: true, name: true },
     })
 
@@ -334,8 +350,9 @@ export async function processRetryDelivery(deliveryId: string): Promise<boolean>
       sendWebhookDisabledEmail({
         to: user.email,
         userName: user.name || 'there',
-        webhookUrl: delivery.webhook.targetUrl,
+        webhookUrl: webhookFailureState.targetUrl,
         lastError: result.error || `HTTP ${result.statusCode}`,
+        autoDisabled: shouldDisableWebhook,
       }).catch((err) => console.error('Failed to send webhook disabled email:', err))
     }
 
@@ -346,26 +363,26 @@ export async function processRetryDelivery(deliveryId: string): Promise<boolean>
   const nextDelay = RETRY_DELAYS_MS[newAttemptCount - 1] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1]
   const nextRetryAt = new Date(now.getTime() + nextDelay)
 
-  await prisma.$transaction([
-    prisma.webhookDelivery.update({
-      where: { id: deliveryId },
-      data: {
-        attemptCount: newAttemptCount,
-        lastAttemptAt: now,
-        nextRetryAt,
-        lastStatusCode: result.statusCode ?? null,
-        lastError: result.error ?? null,
-      },
-    }),
-    prisma.userWebhook.update({
+  await prisma.webhookDelivery.update({
+    where: { id: deliveryId },
+    data: {
+      attemptCount: newAttemptCount,
+      lastAttemptAt: now,
+      nextRetryAt,
+      lastStatusCode: result.statusCode ?? null,
+      lastError: result.error ?? null,
+    },
+  })
+
+  if (shouldDisableWebhook) {
+    await prisma.userWebhook.update({
       where: { id: delivery.webhookId },
       data: {
-        lastFailureAt: now,
-        consecutiveFailures: { increment: 1 },
-        status: 'FAILING',
+        status: 'DISABLED',
+        isActive: false,
       },
-    }),
-  ])
+    })
+  }
 
   // Schedule next retry via QStash
   scheduleRetry(deliveryId, nextDelay).catch((err) =>
@@ -377,7 +394,7 @@ export async function processRetryDelivery(deliveryId: string): Promise<boolean>
 
 /**
  * Manually retry a delivery. Bypasses QStash — attempts immediately.
- * Works on both 'pending' and 'exhausted' deliveries.
+ * Works on both 'pending' and 'failed' deliveries.
  * On success, reactivates the webhook.
  */
 export async function manualRetry(deliveryId: string): Promise<WebhookDispatchResult> {
